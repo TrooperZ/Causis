@@ -2,6 +2,13 @@
 
 A reactive programming language.
 
+**Causis** was a project of mine where I decided to apply my knowledge of formal languages and build my own programming language. It is inspired by Python, C++, and some of React's features.
+
+## Example
+
+
+
+
 ## Layout
 
 - `include/causis/`: public headers for the language frontend/runtime types

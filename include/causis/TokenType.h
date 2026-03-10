@@ -1,14 +1,22 @@
+/**
+ * @file TokenType.h
+ * @author Amin Karic
+ * @brief Token kind enumeration for the Causis lexer and parser.
+ */
 #pragma once
 
 namespace causis {
 
+/**
+ * @brief Enumerates all token kinds recognized by the lexer.
+ */
 enum class TokenType {
   // User-defined names such as variable names, function names, and type names.
   Identifier,
 
   // Literal values written directly in source.
-  IntLiteral,    // Example: 123
-  StringLiteral, // Example: "hello"
+  IntLiteral,    // 123
+  StringLiteral, // "hello"
 
   // Keywords for declarations and built-in language constructs.
   KwLet,   // Immutable variable declaration: let x: Int = 5
@@ -28,6 +36,7 @@ enum class TokenType {
   // Punctuation used for grouping and separating syntax.
   Colon,  // :
   Comma,  // ,
+  Dot,    // .
   LParen, // (
   RParen, // )
   LBrace, // {
@@ -58,4 +67,3 @@ enum class TokenType {
 };
 
 } // namespace causis
-

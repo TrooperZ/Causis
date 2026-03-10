@@ -1,3 +1,12 @@
+/**
+ * @file Interpreter.h
+ * @author Amin Karic
+ * @brief Tree-walk interpreter interface for Causis programs.
+ *
+ * @details
+ * The interpreter executes AST nodes directly and manages runtime environments,
+ * values, and semantic checks such as mutability and type compatibility.
+ */
 #pragma once
 
 #include "causis/AST.h"
@@ -8,8 +17,16 @@
 
 namespace causis {
 
+/**
+ * @brief Executes parsed Causis programs.
+ */
 class Interpreter {
 public:
+  /**
+   * @brief Execute a top-level program AST.
+   *
+   * @param program Top-level statements to evaluate.
+   */
   void execute(const std::vector<std::unique_ptr<Stmt>> &program) {
     (void) program;
   }
@@ -34,4 +51,3 @@ private:
 };
 
 } // namespace causis
-
