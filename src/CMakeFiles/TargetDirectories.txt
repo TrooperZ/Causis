@@ -1,0 +1,3 @@
+/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/src/CMakeFiles/causis.dir
+/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/src/CMakeFiles/edit_cache.dir
+/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/src/CMakeFiles/rebuild_cache.dir
