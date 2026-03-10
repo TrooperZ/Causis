@@ -1,0 +1,6 @@
+let x: Int = 5
+state y: Int = 10
+fn add(a: Int, b: Int) -> Int => a + b
+y <- add(x, y)
+print(y)
+
