@@ -1,8 +1,3 @@
-/**
- * @file FunctionValue.h
- * @author Amin Karic
- * @brief Runtime representation of a user-defined Causis function.
- */
 #pragma once
 
 #include "causis/AST.h"
@@ -14,9 +9,6 @@
 
 namespace causis {
 
-/**
- * @brief Captures function signature, expression body, and closure scope.
- */
 struct FunctionValue {
   std::vector<std::pair<std::string, std::string>> params;
   std::string returnType;

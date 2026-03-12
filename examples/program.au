@@ -1,2 +1,4 @@
-let x = 5
-state y = 10
+let x = 5;
+state y = 10;
+y <- x + 2;
+print(y);

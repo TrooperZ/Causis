@@ -1,12 +1,3 @@
-/**
- * @file Parser.h
- * @author Amin Karic
- * @brief Recursive-descent parser interface for Causis.
- *
- * @details
- * The parser consumes tokens from the lexer and builds the abstract syntax
- * tree used by later stages such as interpretation and type checking.
- */
 #pragma once
 
 #include "causis/AST.h"
@@ -19,24 +10,9 @@
 
 namespace causis {
 
-/**
- * @brief Converts a token stream into Causis AST nodes.
- */
 class Parser {
 public:
-  /**
-   * @brief Construct a parser for a token sequence.
-   *
-   * @param tokens Tokens produced by the lexer.
-   */
   explicit inline Parser(std::vector<Token> tokens) { _tokens = tokens; }
-
-  /**
-   * @brief Parse the full token stream into a top-level program AST.
-   *
-   * @return std::vector<std::unique_ptr<Stmt>> Parsed top-level statements in
-   * source order.
-   */
   std::vector<std::unique_ptr<Stmt>> parse();
 
 private:
@@ -55,6 +31,23 @@ private:
   bool check(TokenType type) const;
   bool match(std::initializer_list<TokenType> types);
   const Token &consume(TokenType type, const std::string &message);
+
+  /*
+  Parser chain follows this ordering:
+
+  Declaration
+  Let/State
+  Print/Assignment
+
+  Expression
+  Equality
+  Comparison
+  Term
+  Factor
+  Unary
+  Func Call
+  Primary
+  */
 
   std::unique_ptr<Stmt> parseDeclaration();
   std::unique_ptr<Stmt> parseLetDeclaration(bool mutableState);

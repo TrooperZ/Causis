@@ -1,4 +1,5 @@
 #include "causis/Lexer.h"
+#include "causis/TokenType.h"
 #include <_ctype.h>
 #include <stdexcept>
 
@@ -24,6 +25,11 @@ void Lexer::scanToken() {
   char c = advance();
 
   switch (c) {
+
+  case ';':
+    addToken(TokenType::Semicolon);
+    break;
+
   case '(':
     addToken(TokenType::LParen);
     break;

@@ -1,12 +1,3 @@
-/**
- * @file Lexer.h
- * @author Amin Karic
- * @brief Lexer interface for the Causis language frontend.
- *
- * @details
- * The lexer scans raw source text and produces a flat sequence of tokens. It
- * is responsible only for tokenization, not grammar validation or execution.
- */
 #pragma once
 
 #include "causis/Token.h"
@@ -18,24 +9,9 @@
 
 namespace causis {
 
-/**
- * @brief Converts raw Causis source text into tokens.
- */
 class Lexer {
 public:
-  /**
-   * @brief Construct a lexer for a source buffer.
-   *
-   * @param source Full source text to scan.
-   */
   explicit inline Lexer(std::string source) { _source = source; }
-
-  /**
-   * @brief Scan the full source buffer into tokens.
-   *
-   * @return std::vector<Token> Tokens in source order, terminated by
-   * TokenType::EndOfFile.
-   */
   std::vector<Token> scanTokens();
 
 private:

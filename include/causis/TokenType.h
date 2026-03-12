@@ -1,18 +1,13 @@
-/**
- * @file TokenType.h
- * @author Amin Karic
- * @brief Token kind enumeration for the Causis lexer and parser.
- */
 #pragma once
 
 namespace causis {
 
-/**
- * @brief Enumerates all token kinds recognized by the lexer.
- */
 enum class TokenType {
   // User-defined names such as variable names, function names, and type names.
   Identifier,
+
+  // End of line marker
+  Semicolon,
 
   // Literal values written directly in source.
   IntLiteral,    // 123
