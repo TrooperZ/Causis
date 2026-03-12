@@ -11,20 +11,20 @@ namespace causis {
 
 class Environment {
 public:
-  explicit Environment(Environment *parent = nullptr) : parent_(parent) {}
+  explicit Environment(Environment *parent = nullptr) : _parent(parent) {}
 
   void define(const std::string &name, Binding binding) {
-    values_[name] = std::move(binding);
+    _values[name] = std::move(binding);
   }
 
   Binding &get(const std::string &name) {
-    auto found = values_.find(name);
-    if (found != values_.end()) {
+    auto found = _values.find(name);
+    if (found != _values.end()) {
       return found->second;
     }
 
-    if (parent_ != nullptr) {
-      return parent_->get(name);
+    if (_parent != nullptr) {
+      return _parent->get(name);
     }
 
     throw std::runtime_error("Unknown binding: " + name);
@@ -36,8 +36,8 @@ public:
   }
 
 private:
-  std::unordered_map<std::string, Binding> values_;
-  Environment *parent_ = nullptr;
+  std::unordered_map<std::string, Binding> _values;
+  Environment *_parent = nullptr;
 };
 
 } // namespace causis

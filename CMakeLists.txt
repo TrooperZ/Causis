@@ -11,7 +11,11 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 
-add_library(causis_core SHARED src/Lexer.cpp)
+add_library(causis_core SHARED
+  src/Lexer.cpp
+  src/Parser.cpp
+  src/Interpreter.cpp
+)
 
 # Tell the compiler where to find headers when building causis_core
 target_include_directories(
@@ -33,3 +37,9 @@ add_executable(causis
 )
 
 target_link_libraries(causis PRIVATE causis_core)
+
+add_executable(parser_debug
+  tests/parser_debug.cpp
+)
+
+target_link_libraries(parser_debug PRIVATE causis_core)

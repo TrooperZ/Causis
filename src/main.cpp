@@ -1,13 +1,16 @@
-#include "causis/AST.h"
 #include "causis/Interpreter.h"
 #include "causis/Lexer.h"
-#include "causis/Token.h"
+#include "causis/Parser.h"
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
 int main(int argc, char *argv[]) {
+  if (argc < 2) {
+    std::cerr << "Usage: causis <source-file>\n";
+    return 1;
+  }
 
   // program takes in arg 1 as file to run
   std::ifstream ifs(argv[1]);
@@ -26,14 +29,16 @@ int main(int argc, char *argv[]) {
 
   auto tokens = lexer.scanTokens();
 
-  for (const auto &token : tokens) {
-    std::cout << "lexeme=[" << token.lexeme << "] line=" << token.line << "\n";
+  std::vector<std::unique_ptr<causis::Stmt>> program;
+  try {
+    causis::Parser parser(tokens);
+    program = parser.parse();
+  } catch (const std::exception &ex) {
+    std::cerr << "Parse error: " << ex.what() << "\n";
+    return 1;
   }
 
-  // lexer: text to token
-  // parser: token to ast
-  // interpreter: walks ast
-
-  std::cout << "Causis starter project configured.\n";
+  causis::Interpreter interpreter;
+  interpreter.execute(program);
   return 0;
 }

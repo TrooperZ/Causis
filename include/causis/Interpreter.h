@@ -10,27 +10,17 @@ namespace causis {
 
 class Interpreter {
 public:
-  void execute(const std::vector<std::unique_ptr<Stmt>> &program) {
-    (void) program;
-  }
+  void execute(const std::vector<std::unique_ptr<Stmt>> &program);
 
 private:
-  Environment globals_;
-  Environment *env_ = &globals_;
+  Environment _globals;
+  Environment *_env = &_globals;
 
-  void execStmt(const Stmt &stmt) {
-    (void) stmt;
-  }
+  void execStmt(const Stmt &stmt);
 
-  Value evalExpr(const Expr &expr) {
-    (void) expr;
-    return {};
-  }
+  Value evalExpr(const Expr &expr);
 
-  void checkType(const std::string &declaredType, const Value &value) {
-    (void) declaredType;
-    (void) value;
-  }
+  void checkType(const std::string &declaredType, const Value &value);
 };
 
 } // namespace causis

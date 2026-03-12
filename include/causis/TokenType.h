@@ -38,10 +38,9 @@ enum class TokenType {
   RBrace, // }
 
   // Assignment and function syntax operators.
-  Equal,       // =   Used in declarations: let x = 5
-  AssignArrow, // <-  Used for mutable assignment: x <- 10
-  FatArrow,    // =>  Used in expression-bodied functions
-  ThinArrow,   // ->  Used before function return type
+  Equal,     // =   Used in declarations and assignment statements
+  FatArrow,  // =>  Used in expression-bodied functions
+  ThinArrow, // ->  Used before function return type
 
   // Arithmetic operators.
   Plus,  // +

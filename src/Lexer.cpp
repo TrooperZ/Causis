@@ -72,17 +72,33 @@ void Lexer::scanToken() {
 
   /* Two‑char operators */
   case '=':
-    if (match('>')) {
+    if (match('=')) {
+      addToken(TokenType::EqualEqual);
+    } else if (match('>')) {
       addToken(TokenType::FatArrow);
     } else {
       addToken(TokenType::Equal);
     }
     break;
   case '<':
-    if (match('-')) {
-      addToken(TokenType::AssignArrow);
+    if (match('=')) {
+      addToken(TokenType::LessEqual);
     } else {
       addToken(TokenType::Less);
+    }
+    break;
+  case '>':
+    if (match('=')) {
+      addToken(TokenType::GreaterEqual);
+    } else {
+      addToken(TokenType::Greater);
+    }
+    break;
+  case '!':
+    if (match('=')) {
+      addToken(TokenType::NotEqual);
+    } else {
+      throw std::runtime_error("Unexpected character");
     }
     break;
 

@@ -236,7 +236,7 @@ std::unique_ptr<Stmt> Parser::parseAssignmentStatement() {
   const Token &name =
       consume(TokenType::Identifier, "Expected assignment target.");
 
-  consume(TokenType::AssignArrow, "Expected <- after assignment target.");
+  consume(TokenType::Equal, "Expected '=' after assignment target.");
   std::unique_ptr<Expr> expr = parseExpression();
   consume(TokenType::Semicolon, "Expected ';' after assignment.");
 
