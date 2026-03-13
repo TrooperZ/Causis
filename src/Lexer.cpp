@@ -70,6 +70,10 @@ void Lexer::scanToken() {
     addToken(TokenType::Star);
     break;
 
+  case '/':
+    addToken(TokenType::Slash);
+    break;
+
   /* Two‑char operators */
   case '=':
     if (match('=')) {
@@ -130,28 +134,31 @@ void Lexer::scanToken() {
 }
 
 void Lexer::scanString() {
+  std::string value;
+
   while (!isAtEnd() && peek() != '"') {
     if (peek() == '\n') {
       _line++;
     }
+
     if (peek() == '\\' && !isAtEnd()) {
       advance();          // consume backslash
       char c = advance(); // escaped char
       switch (c) {
       case '\"':
-        _source[_current - 1] = '\"';
+        value.push_back('\"');
         break;
 
       case '\\':
-        _source[_current - 1] = '\\';
+        value.push_back('\\');
         break;
 
       case 'n':
-        _source[_current - 1] = '\n';
+        value.push_back('\n');
         break;
 
       case 't':
-        _source[_current - 1] = '\t';
+        value.push_back('\t');
         break;
 
       default:
@@ -159,20 +166,20 @@ void Lexer::scanString() {
                                  std::string(1, c));
       }
     } else {
-      advance(); // consume as normal
+      value.push_back(advance()); // consume as normal
     }
 
     if (isAtEnd()) {
       throw std::runtime_error("Unterminated string literal");
-      return;
     }
-
-    advance(); // consume closing quote
-
-    // The lexeme is everything between _start+1 and _current-1
-    std::string value = _source.substr(_start + 1, _current - _start - 2);
-    addToken(TokenType::StringLiteral, value);
   }
+
+  if (isAtEnd()) {
+    throw std::runtime_error("Unterminated string literal");
+  }
+
+  advance(); // consume closing quote
+  addToken(TokenType::StringLiteral, value);
 }
 void Lexer::scanNumber() {
   while (!isAtEnd() && std::isdigit(static_cast<unsigned char>(peek()))) {

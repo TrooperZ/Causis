@@ -24,3 +24,15 @@ private:
 };
 
 } // namespace causis
+
+/*
+
+let: immutable
+state: mutable
++ / - *
+
+<= = >= > <
+
+
+
+*/
