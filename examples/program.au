@@ -1,0 +1,65 @@
+let seed: Int = 2;
+state counter: Int = 0;
+state total: Int = 0;
+
+print("=== blocks ===\n");
+{
+  let scoped: Int = seed + 3;
+  print(scoped);
+  print("\n");
+}
+
+print("=== functions ===\n");
+fn add(a: Int, b: Int) -> Int {
+  let result: Int = a + b;
+  return result;
+}
+
+fn double(value: Int) -> Int {
+  return value + value;
+}
+
+fn classify(value: Int) -> Int {
+  if (value > 10) {
+    return 1;
+  } else if (value == 10) {
+    return 0;
+  } else {
+    return -1;
+  }
+}
+
+print(add(4, 5));
+print("\n");
+print(double(seed));
+print("\n");
+print(classify(add(4, 6)));
+print("\n");
+
+print("=== if / else if / else ===\n");
+if (seed > 3) {
+  print(100);
+} else if (seed == 2) {
+  print(200);
+} else {
+  print(300);
+}
+print("\n");
+
+print("=== while ===\n");
+while (counter < 3) {
+  total = total + counter;
+  print(counter);
+  print("\n");
+  counter = counter + 1;
+}
+
+print("while total=");
+print(total);
+print("\n");
+
+print("=== for ===\n");
+for (state i: Int = 0; i < 3; i = i + 1) {
+  print(i);
+  print("\n");
+}

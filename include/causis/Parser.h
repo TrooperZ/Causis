@@ -60,6 +60,8 @@ private:
   std::unique_ptr<Stmt> parseReturnStatement();
   std::unique_ptr<Stmt> parseFnDeclaration();
   std::unique_ptr<Stmt> parseIfStatement();
+  std::unique_ptr<Stmt> parseWhileStatement();
+  std::unique_ptr<Stmt> parseForStatement();
 
   std::unique_ptr<Expr> parseExpression();
   std::unique_ptr<Expr> parseEquality();

@@ -86,4 +86,16 @@ struct IfStmt : Stmt {
   std::unique_ptr<Stmt> elseBranch;
 };
 
+struct WhileStmt : Stmt {
+  std::unique_ptr<Expr> condition;
+  std::unique_ptr<Stmt> body;
+};
+
+struct ForStmt : Stmt {
+  std::unique_ptr<Stmt> initializer;
+  std::unique_ptr<Expr> condition;
+  std::unique_ptr<Stmt> increment;
+  std::unique_ptr<Stmt> body;
+};
+
 } // namespace causis

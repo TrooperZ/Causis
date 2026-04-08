@@ -1,14 +1,30 @@
 #pragma once
 
-#include "causis/ValueType.h"
-
 #include <memory>
 #include <string>
+#include <utility>
 #include <variant>
+#include <vector>
 
 namespace causis {
 
-struct FunctionValue;
+struct BlockStmt;
+class Environment;
+
+enum class ValueType {
+  Int,
+  String,
+  Bool,
+  Function,
+  Void
+};
+
+struct FunctionValue {
+  std::vector<std::pair<std::string, std::string>> params;
+  std::string returnType;
+  const BlockStmt *body = nullptr;
+  Environment *closure = nullptr;
+};
 
 struct Value {
   using Storage = std::variant<int, std::string, bool,
@@ -16,6 +32,10 @@ struct Value {
 
   ValueType type = ValueType::Void;
   Storage data = std::monostate{};
+};
+
+struct ReturnValue {
+  Value value;
 };
 
 } // namespace causis

@@ -2,10 +2,7 @@
 #include "causis/AST.h"
 #include "causis/Binding.h"
 #include "causis/Environment.h"
-#include "causis/FunctionValue.h"
-#include "causis/ReturnSignal.h"
 #include "causis/TokenType.h"
-#include "causis/ValueType.h"
 
 #include <iostream>
 #include <memory>
@@ -55,7 +52,7 @@ void Interpreter::execStmt(const Stmt &stmt) {
 
   if (auto s = dynamic_cast<const ReturnStmt *>(&stmt)) {
     Value value = evalExpr(*s->value);
-    throw ReturnSignal{value};
+    throw ReturnValue{value};
   }
 
   if (auto s = dynamic_cast<const AssignStmt *>(&stmt)) {
@@ -109,6 +106,61 @@ void Interpreter::execStmt(const Stmt &stmt) {
     return;
   }
 
+  if (auto s = dynamic_cast<const WhileStmt *>(&stmt)) {
+    while (true) {
+      Value condition = evalExpr(*s->condition);
+
+      if (condition.type != ValueType::Bool) {
+        throw std::runtime_error("While condition must be Bool.");
+      }
+
+      if (!std::get<bool>(condition.data)) {
+        break;
+      }
+
+      execStmt(*s->body);
+    }
+
+    return;
+  }
+
+  if (auto s = dynamic_cast<const ForStmt *>(&stmt)) {
+    Environment loopEnv(_env);
+    Environment *old = _env;
+    _env = &loopEnv;
+
+    try {
+      if (s->initializer != nullptr) {
+        execStmt(*s->initializer);
+      }
+
+      while (true) {
+        if (s->condition != nullptr) {
+          Value condition = evalExpr(*s->condition);
+
+          if (condition.type != ValueType::Bool) {
+            throw std::runtime_error("For condition must be Bool.");
+          }
+
+          if (!std::get<bool>(condition.data)) {
+            break;
+          }
+        }
+
+        execStmt(*s->body);
+
+        if (s->increment != nullptr) {
+          execStmt(*s->increment);
+        }
+      }
+    } catch (...) {
+      _env = old;
+      throw;
+    }
+    _env = old;
+    return;
+  }
+
   return;
 }
 
@@ -159,9 +211,9 @@ Value Interpreter::evalExpr(const Expr &expr) {
 
     try {
       execBlock(*fn->body, callEnv);
-    } catch (const ReturnSignal &signal) {
-      checkType(fn->returnType, signal.value);
-      return signal.value;
+    } catch (const ReturnValue &result) {
+      checkType(fn->returnType, result.value);
+      return result.value;
     }
 
     Value voidValue;

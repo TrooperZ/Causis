@@ -91,6 +91,14 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
     return parseIfStatement();
   }
 
+  if (match({TokenType::KwWhile})) {
+    return parseWhileStatement();
+  }
+
+  if (match({TokenType::KwFor})) {
+    return parseForStatement();
+  }
+
   return parseAssignmentStatement();
 }
 
@@ -377,6 +385,66 @@ std::unique_ptr<Stmt> Parser::parseIfStatement() {
   stmt->condition = std::move(condition);
   stmt->thenBranch = std::move(thenBranch);
   stmt->elseBranch = std::move(elseBranch);
+  return stmt;
+}
+
+std::unique_ptr<Stmt> Parser::parseWhileStatement() {
+  consume(TokenType::LParen, "Expected '(' after while.");
+  auto condition = parseExpression();
+  consume(TokenType::RParen, "Expected ')' after condition.");
+
+  auto body = parseStatement();
+
+  auto stmt = std::make_unique<WhileStmt>();
+  stmt->condition = std::move(condition);
+  stmt->body = std::move(body);
+  return stmt;
+}
+
+std::unique_ptr<Stmt> Parser::parseForStatement() {
+  consume(TokenType::LParen, "Expected '(' after for.");
+
+  // initalizer
+  std::unique_ptr<Stmt> initializer;
+  if (match({TokenType::Semicolon})) {
+    initializer = nullptr;
+  } else if (match({TokenType::KwLet})) {
+    initializer = parseLetDeclaration(false);
+  } else if (match({TokenType::KwState})) {
+    initializer = parseLetDeclaration(true);
+  } else {
+    initializer = parseAssignmentStatement();
+  }
+
+  // condition
+  std::unique_ptr<Expr> condition;
+  if (!check(TokenType::Semicolon)) {
+    condition = parseExpression();
+  }
+  consume(TokenType::Semicolon, "Expected ';' after loop condition.");
+
+  // increment
+  auto increment = std::make_unique<AssignStmt>();
+  if (!check(TokenType::RParen)) {
+    const Token &name =
+        consume(TokenType::Identifier, "Expected assignment target.");
+
+    consume(TokenType::Equal, "Expected '=' after assignment target.");
+    std::unique_ptr<Expr> expr = parseExpression();
+
+    increment->name = name.lexeme;
+    increment->value = std::move(expr);
+  }
+  consume(TokenType::RParen, "Expected ')' after for clauses.");
+
+  std::unique_ptr<Stmt> body = parseStatement();
+
+  auto stmt = std::make_unique<ForStmt>();
+
+  stmt->initializer = std::move(initializer);
+  stmt->condition = std::move(condition);
+  stmt->increment = std::move(increment);
+  stmt->body = std::move(body);
   return stmt;
 }
 
