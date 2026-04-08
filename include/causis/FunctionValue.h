@@ -12,7 +12,7 @@ namespace causis {
 struct FunctionValue {
   std::vector<std::pair<std::string, std::string>> params;
   std::string returnType;
-  const Expr *body = nullptr;
+  const BlockStmt *body = nullptr;
   Environment *closure = nullptr;
 };
 

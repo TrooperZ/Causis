@@ -15,7 +15,7 @@ struct Value {
                                std::shared_ptr<FunctionValue>, std::monostate>;
 
   ValueType type = ValueType::Void;
-  Storage data = std::monostate {};
+  Storage data = std::monostate{};
 };
 
 } // namespace causis

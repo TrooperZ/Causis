@@ -1,6 +1,7 @@
 #pragma once
 
 #include "causis/Token.h"
+#include "causis/TokenType.h"
 
 #include <cstddef>
 #include <string>
@@ -22,11 +23,14 @@ private:
   int _line = 1;
 
   inline static const std::unordered_map<std::string, TokenType> _keywords = {
-      {"let", TokenType::KwLet},     {"state", TokenType::KwState},
-      {"fn", TokenType::KwFn},       {"print", TokenType::KwPrint},
-      {"Int", TokenType::KwInt},     {"String", TokenType::KwString},
-      {"Bool", TokenType::KwBool},   {"true", TokenType::KwTrue},
-      {"false", TokenType::KwFalse},
+      {"let", TokenType::KwLet},       {"state", TokenType::KwState},
+      {"fn", TokenType::KwFn},         {"return", TokenType::KwReturn},
+      {"print", TokenType::KwPrint},   {"Int", TokenType::KwInt},
+      {"String", TokenType::KwString}, {"Bool", TokenType::KwBool},
+      {"true", TokenType::KwTrue},     {"false", TokenType::KwFalse},
+      {"if", TokenType::KwIf},         {"else", TokenType::KwElse},
+      {"for", TokenType::KwFor},       {"while", TokenType::KwWhile}
+
   };
 
   inline bool isAtEnd() const { return _current >= _source.size(); }

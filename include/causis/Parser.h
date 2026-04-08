@@ -2,9 +2,11 @@
 
 #include "causis/AST.h"
 #include "causis/Token.h"
+#include "causis/TokenType.h"
 
 #include <cstddef>
 #include <initializer_list>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -52,8 +54,12 @@ private:
   std::unique_ptr<Stmt> parseDeclaration();
   std::unique_ptr<Stmt> parseLetDeclaration(bool mutableState);
   std::unique_ptr<Stmt> parseStatement();
+  std::unique_ptr<BlockStmt> parseBlockStatement();
   std::unique_ptr<Stmt> parseAssignmentStatement();
   std::unique_ptr<Stmt> parsePrintStatement();
+  std::unique_ptr<Stmt> parseReturnStatement();
+  std::unique_ptr<Stmt> parseFnDeclaration();
+  std::unique_ptr<Stmt> parseIfStatement();
 
   std::unique_ptr<Expr> parseExpression();
   std::unique_ptr<Expr> parseEquality();

@@ -14,10 +14,15 @@ enum class TokenType {
   StringLiteral, // "hello"
 
   // Keywords for declarations and built-in language constructs.
-  KwLet,   // Immutable variable declaration: let x: Int = 5
-  KwState, // Mutable state declaration: state counter: Int = 0
-  KwFn,    // Function declaration: fn add(a: Int, b: Int) -> Int => a + b
-  KwPrint, // Built-in print statement/function: print(x)
+  KwLet,    // Immutable variable declaration: let x: Int = 5
+  KwState,  // Mutable state declaration: state counter: Int = 0
+  KwFn,     // Function declaration: fn add(a: Int, b: Int) -> Int => a + b
+  KwReturn, // Return statement inside a function block
+  KwPrint,  // Built-in print statement/function: print(x)
+  KwIf,     // If statement declaration
+  KwElse,   // Else declaration for if statements, can chain if, else if, else
+  KwFor,    // For loop declaration
+  KwWhile,  // While loop declaration
 
   // Built-in primitive type keywords.
   KwInt,    // Type name Int
@@ -39,7 +44,6 @@ enum class TokenType {
 
   // Assignment and function syntax operators.
   Equal,     // =   Used in declarations and assignment statements
-  FatArrow,  // =>  Used in expression-bodied functions
   ThinArrow, // ->  Used before function return type
 
   // Arithmetic operators.

@@ -61,12 +61,15 @@ std::vector<std::unique_ptr<Stmt>> Parser::parse() {
 }
 
 std::unique_ptr<Stmt> Parser::parseDeclaration() {
-  // Declarations are either a let, state, or a statement
+  // Declarations are either a let, state, fn, or a statement
   if (match({TokenType::KwLet})) {
     return parseLetDeclaration(false);
   }
   if (match({TokenType::KwState})) {
     return parseLetDeclaration(true);
+  }
+  if (match({TokenType::KwFn})) {
+    return parseFnDeclaration();
   }
   return parseStatement();
 }
@@ -75,6 +78,19 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
   if (match({TokenType::KwPrint})) {
     return parsePrintStatement();
   }
+
+  if (match({TokenType::KwReturn})) {
+    return parseReturnStatement();
+  }
+
+  if (check(TokenType::LBrace)) {
+    return parseBlockStatement();
+  }
+
+  if (match({TokenType::KwIf})) {
+    return parseIfStatement();
+  }
+
   return parseAssignmentStatement();
 }
 
@@ -217,6 +233,16 @@ std::unique_ptr<Stmt> Parser::parseLetDeclaration(bool mutableState) {
   const Token &name = consume(TokenType::Identifier,
                               "Expected variable name after declaration.");
 
+  std::string typeName = "";
+
+  if (match({TokenType::Colon})) {
+    if (match({TokenType::KwBool, TokenType::KwInt, TokenType::KwString})) {
+      typeName = previous().lexeme;
+    } else {
+      throw std::runtime_error("Expected type definition after ':'.");
+    }
+  }
+
   consume(TokenType::Equal, "Expected '=' after variable name in declaration.");
 
   std::unique_ptr<Expr> initializer = parseExpression();
@@ -225,7 +251,7 @@ std::unique_ptr<Stmt> Parser::parseLetDeclaration(bool mutableState) {
 
   auto statement = std::make_unique<LetStmt>();
   statement->name = name.lexeme;
-  statement->typeName = "";
+  statement->typeName = typeName;
   statement->initializer = std::move(initializer);
   statement->mutableState = mutableState;
 
@@ -269,6 +295,89 @@ std::vector<std::unique_ptr<Expr>> Parser::parseArguments() {
     args.emplace_back(parseExpression());
   } while (match({TokenType::Comma}));
   return args;
+}
+
+std::unique_ptr<Stmt> Parser::parseFnDeclaration() {
+  const Token &name = consume(TokenType::Identifier, "Expected function name.");
+  consume(TokenType::LParen, "Expected '(' after 'fn'.");
+
+  std::vector<std::pair<std::string, std::string>> params;
+
+  if (!check(TokenType::RParen)) {
+    do {
+      const Token &paramName =
+          consume(TokenType::Identifier, "Expected parameter name.");
+      consume(TokenType::Colon, "Expected ':' after parameter name.");
+
+      std::string paramType = "";
+      if (match({TokenType::KwInt, TokenType::KwString, TokenType::KwBool})) {
+        paramType = previous().lexeme;
+      }
+
+      params.push_back({paramName.lexeme, paramType});
+    } while (match({TokenType::Comma}));
+  }
+
+  consume(TokenType::RParen, "Expected ')' after 'fn'.");
+
+  std::string typeName = "";
+
+  if (match({TokenType::ThinArrow})) {
+    if (match({TokenType::KwBool, TokenType::KwInt, TokenType::KwString})) {
+      typeName = previous().lexeme;
+    } else {
+      throw std::runtime_error("Expected type definition after '->'.");
+    }
+  }
+
+  auto body = parseBlockStatement();
+
+  auto fn = std::make_unique<FnStmt>();
+  fn->name = name.lexeme;
+  fn->params = std::move(params);
+  fn->returnType = typeName;
+  fn->body = std::move(body);
+
+  return fn;
+}
+
+std::unique_ptr<BlockStmt> Parser::parseBlockStatement() {
+  auto block = std::make_unique<BlockStmt>();
+
+  consume(TokenType::LBrace, "Expected '{' to start block.");
+
+  while (!check(TokenType::RBrace) && !isAtEnd()) {
+    block->statements.push_back(parseDeclaration());
+  }
+
+  consume(TokenType::RBrace, "Expected '}' after block.");
+  return block;
+}
+
+std::unique_ptr<Stmt> Parser::parseReturnStatement() {
+  auto statement = std::make_unique<ReturnStmt>();
+  statement->value = parseExpression();
+  consume(TokenType::Semicolon, "Expected ';' after return value.");
+  return statement;
+}
+
+std::unique_ptr<Stmt> Parser::parseIfStatement() {
+  consume(TokenType::LParen, "Expected '(' after if.");
+  auto condition = parseExpression();
+  consume(TokenType::RParen, "Expected ')' after condition.");
+
+  auto thenBranch = parseStatement();
+
+  std::unique_ptr<Stmt> elseBranch;
+  if (match({TokenType::KwElse})) {
+    elseBranch = parseStatement();
+  }
+
+  auto stmt = std::make_unique<IfStmt>();
+  stmt->condition = std::move(condition);
+  stmt->thenBranch = std::move(thenBranch);
+  stmt->elseBranch = std::move(elseBranch);
+  return stmt;
 }
 
 } // namespace causis

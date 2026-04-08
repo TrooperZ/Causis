@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Causis Logo Concepts</title>
+    <style>
+      :root {
+        --bg: #f0ece4;
+        --ink: #1e293b;
+        --muted: #52606d;
+        --card: rgba(255, 255, 255, 0.72);
+        --border: rgba(30, 41, 59, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Iowan Old Style", "Palatino Linotype", serif;
+        background:
+          radial-gradient(circle at top left, rgba(217, 93, 57, 0.16), transparent 28%),
+          radial-gradient(circle at bottom right, rgba(44, 110, 102, 0.18), transparent 32%),
+          var(--bg);
+        color: var(--ink);
+      }
+
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 48px 24px 72px;
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: clamp(2.4rem, 4vw, 4rem);
+        letter-spacing: -0.04em;
+      }
+
+      p {
+        margin: 0 0 32px;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 22px;
+      }
+
+      figure {
+        margin: 0;
+        padding: 18px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: var(--card);
+        backdrop-filter: blur(10px);
+      }
+
+      img {
+        width: 100%;
+        display: block;
+        border-radius: 18px;
+      }
+
+      figcaption {
+        margin-top: 14px;
+      }
+
+      strong {
+        display: block;
+        font-size: 1.05rem;
+      }
+
+      span {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Causis Logo Concepts</h1>
+      <p>Six quick directions exploring causality, syntax, state, and change propagation.</p>
+      <section class="grid">
+        <figure>
+          <img src="./chain-reaction-c.svg" alt="Chain Reaction C logo concept" />
+          <figcaption><strong>Chain Reaction C</strong><span>Connected nodes forming a reactive C.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="./cause-effect-glyph.svg" alt="Cause Effect Glyph logo concept" />
+          <figcaption><strong>Cause -> Effect Glyph</strong><span>A trigger flowing into a resulting block.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="./ast-crystal.svg" alt="AST Crystal logo concept" />
+          <figcaption><strong>AST Crystal</strong><span>Branching structure converging into a stable center.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="./ripple-mark.svg" alt="Ripple Mark logo concept" />
+          <figcaption><strong>Ripple Mark</strong><span>Propagation rendered as strict geometric waves.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="./state-block-monogram.svg" alt="State Block Monogram logo concept" />
+          <figcaption><strong>State Block Monogram</strong><span>Offset blocks suggest explicit mutation.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="./semicolon-signal.svg" alt="Semicolon Signal logo concept" />
+          <figcaption><strong>Semicolon Signal</strong><span>Punctuation-inspired mark with language energy.</span></figcaption>
+        </figure>
+      </section>
+    </main>
+  </body>
+</html>

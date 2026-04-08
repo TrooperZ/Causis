@@ -65,11 +65,25 @@ struct PrintStmt : Stmt {
   std::unique_ptr<Expr> expr;
 };
 
+struct BlockStmt : Stmt {
+  std::vector<std::unique_ptr<Stmt>> statements;
+};
+
+struct ReturnStmt : Stmt {
+  std::unique_ptr<Expr> value;
+};
+
 struct FnStmt : Stmt {
   std::string name;
   std::vector<std::pair<std::string, std::string>> params;
   std::string returnType;
-  std::unique_ptr<Expr> body;
+  std::unique_ptr<BlockStmt> body;
+};
+
+struct IfStmt : Stmt {
+  std::unique_ptr<Expr> condition;
+  std::unique_ptr<Stmt> thenBranch;
+  std::unique_ptr<Stmt> elseBranch;
 };
 
 } // namespace causis

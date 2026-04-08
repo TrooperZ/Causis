@@ -17,6 +17,7 @@ private:
   Environment *_env = &_globals;
 
   void execStmt(const Stmt &stmt);
+  void execBlock(const BlockStmt &blockStmt, Environment &blockEnv);
 
   Value evalExpr(const Expr &expr);
 

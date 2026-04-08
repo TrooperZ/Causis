@@ -30,6 +30,10 @@ void Lexer::scanToken() {
     addToken(TokenType::Semicolon);
     break;
 
+  case ':':
+    addToken(TokenType::Colon);
+    break;
+
   case '(':
     addToken(TokenType::LParen);
     break;
@@ -78,8 +82,6 @@ void Lexer::scanToken() {
   case '=':
     if (match('=')) {
       addToken(TokenType::EqualEqual);
-    } else if (match('>')) {
-      addToken(TokenType::FatArrow);
     } else {
       addToken(TokenType::Equal);
     }

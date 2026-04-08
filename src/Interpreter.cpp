@@ -1,9 +1,14 @@
 #include "causis/Interpreter.h"
 #include "causis/AST.h"
 #include "causis/Binding.h"
+#include "causis/Environment.h"
+#include "causis/FunctionValue.h"
+#include "causis/ReturnSignal.h"
 #include "causis/TokenType.h"
 #include "causis/ValueType.h"
+
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 namespace causis {
@@ -15,8 +20,15 @@ void Interpreter::execute(const std::vector<std::unique_ptr<Stmt>> &program) {
 }
 
 void Interpreter::execStmt(const Stmt &stmt) {
+  if (auto s = dynamic_cast<const BlockStmt *>(&stmt)) {
+    Environment blockEnv(_env);
+    execBlock(*s, blockEnv);
+    return;
+  }
+
   if (auto s = dynamic_cast<const LetStmt *>(&stmt)) {
     Value value = evalExpr(*(s->initializer));
+    checkType(s->typeName, value);
     Binding b = Binding();
     b.declaredType = s->typeName;
     b.value = value;
@@ -25,9 +37,31 @@ void Interpreter::execStmt(const Stmt &stmt) {
     return;
   }
 
+  if (auto s = dynamic_cast<const FnStmt *>(&stmt)) {
+    auto fn = std::make_shared<FunctionValue>();
+    fn->params = s->params;
+    fn->returnType = s->returnType;
+    fn->body = s->body.get();
+    fn->closure = _env;
+
+    Binding b;
+    b.declaredType = "";
+    b.value = Value(ValueType::Function, fn);
+    b.mutableState = false;
+
+    _env->define(s->name, b);
+    return;
+  }
+
+  if (auto s = dynamic_cast<const ReturnStmt *>(&stmt)) {
+    Value value = evalExpr(*s->value);
+    throw ReturnSignal{value};
+  }
+
   if (auto s = dynamic_cast<const AssignStmt *>(&stmt)) {
     Value value = evalExpr(*(s->value));
-    Binding b = _env->get(s->name);
+    const Binding &b = _env->get(s->name);
+    checkType(b.declaredType, value);
     if (!b.mutableState) {
       throw std::runtime_error("Cannot assign to immutable binding");
     }
@@ -59,10 +93,82 @@ void Interpreter::execStmt(const Stmt &stmt) {
     return;
   }
 
+  if (auto s = dynamic_cast<const IfStmt *>(&stmt)) {
+    Value condition = evalExpr(*s->condition);
+
+    if (condition.type != ValueType::Bool) {
+      throw std::runtime_error("If condition must be Bool.");
+    }
+
+    if (std::get<bool>(condition.data)) {
+      execStmt(*s->thenBranch);
+    } else if (s->elseBranch != nullptr) {
+      execStmt(*s->elseBranch);
+    }
+
+    return;
+  }
+
   return;
 }
 
+void Interpreter::execBlock(const BlockStmt &blockStmt, Environment &blockEnv) {
+  Environment *old = _env;
+  _env = &blockEnv;
+
+  try {
+    for (const auto &stmt : blockStmt.statements) {
+      execStmt(*stmt);
+    }
+  } catch (...) {
+    _env = old;
+    throw;
+  }
+
+  _env = old;
+}
+
 Value Interpreter::evalExpr(const Expr &expr) {
+  if (auto e = dynamic_cast<const CallExpr *>(&expr)) {
+    const Binding &binding = _env->get(e->callee);
+
+    if (binding.value.type != ValueType::Function) {
+      throw std::runtime_error("Can only call functions.");
+    }
+
+    std::shared_ptr<causis::FunctionValue> fn =
+        std::get<std::shared_ptr<FunctionValue>>(binding.value.data);
+
+    if (e->args.size() != fn->params.size()) {
+      throw std::runtime_error("Wrong number of arguments.");
+    }
+
+    Environment callEnv(fn->closure);
+
+    for (size_t i = 0; i < e->args.size(); ++i) {
+      Value argValue = evalExpr(*e->args[i]);
+
+      Binding paramBinding;
+      paramBinding.declaredType = fn->params[i].second;
+      checkType(paramBinding.declaredType, argValue);
+      paramBinding.value = argValue;
+      paramBinding.mutableState = false;
+
+      callEnv.define(fn->params[i].first, paramBinding);
+    }
+
+    try {
+      execBlock(*fn->body, callEnv);
+    } catch (const ReturnSignal &signal) {
+      checkType(fn->returnType, signal.value);
+      return signal.value;
+    }
+
+    Value voidValue;
+    checkType(fn->returnType, voidValue);
+    return voidValue;
+  }
+
   if (auto e = dynamic_cast<const IntExpr *>(&expr)) {
     return Value(ValueType::Int, e->value);
   }
@@ -76,7 +182,7 @@ Value Interpreter::evalExpr(const Expr &expr) {
   }
 
   if (auto e = dynamic_cast<const IdentifierExpr *>(&expr)) {
-    Binding b = _env->get(e->name);
+    const Binding &b = _env->get(e->name);
     return b.value;
   }
 
@@ -173,7 +279,32 @@ Value Interpreter::evalExpr(const Expr &expr) {
 
 void Interpreter::checkType(const std::string &declaredType,
                             const Value &value) {
-  return;
+  if (declaredType.empty()) {
+    return;
+  }
+
+  if (declaredType == "Int") {
+    if (value.type != ValueType::Int) {
+      throw std::runtime_error("Type error: expected Int.");
+    }
+    return;
+  }
+
+  if (declaredType == "String") {
+    if (value.type != ValueType::String) {
+      throw std::runtime_error("Type error: expected String.");
+    }
+    return;
+  }
+
+  if (declaredType == "Bool") {
+    if (value.type != ValueType::Bool) {
+      throw std::runtime_error("Type error: expected Bool.");
+    }
+    return;
+  }
+
+  throw std::runtime_error("Unknown declared type: " + declaredType);
 }
 
 } // namespace causis

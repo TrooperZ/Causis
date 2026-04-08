@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
+#include <vector>
 
 namespace {
 
@@ -125,6 +127,14 @@ int main(int argc, char *argv[]) {
   for (const auto &stmt : program) {
     if (dynamic_cast<causis::LetStmt *>(stmt.get())) {
       std::cout << "LetStmt\n";
+    } else if (dynamic_cast<causis::BlockStmt *>(stmt.get())) {
+      std::cout << "BlockStmt\n";
+    } else if (dynamic_cast<causis::FnStmt *>(stmt.get())) {
+      std::cout << "FnStmt\n";
+    } else if (dynamic_cast<causis::IfStmt *>(stmt.get())) {
+      std::cout << "IfStmt\n";
+    } else if (dynamic_cast<causis::ReturnStmt *>(stmt.get())) {
+      std::cout << "ReturnStmt\n";
     } else if (dynamic_cast<causis::AssignStmt *>(stmt.get())) {
       std::cout << "AssignStmt\n";
     } else if (dynamic_cast<causis::PrintStmt *>(stmt.get())) {
@@ -138,6 +148,10 @@ int main(int argc, char *argv[]) {
     if (auto *letStmt = dynamic_cast<causis::LetStmt *>(stmt.get())) {
       std::cout << "Let name=" << letStmt->name
                 << " mutable=" << letStmt->mutableState << "\n";
+    } else if (auto *ifStmt = dynamic_cast<causis::IfStmt *>(stmt.get())) {
+      std::cout << "IfStmt\n";
+      std::cout << "Condition tree:\n";
+      printExpr(ifStmt->condition.get(), 2);
     } else if (auto *assignStmt =
                    dynamic_cast<causis::AssignStmt *>(stmt.get())) {
       std::cout << "Assign name=" << assignStmt->name << "\n";

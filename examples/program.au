@@ -1,4 +1,0 @@
-let x = 5;
-state y = 10;
-y = x + 2 * 3;
-print(y);
