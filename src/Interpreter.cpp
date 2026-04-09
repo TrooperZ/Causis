@@ -4,11 +4,100 @@
 #include "causis/Environment.h"
 #include "causis/TokenType.h"
 
+#include <limits>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 
 namespace causis {
+
+namespace {
+
+bool isIntegerValue(const Value &value) { return value.type == ValueType::Int; }
+
+bool isFloatValue(const Value &value) { return value.type == ValueType::Float; }
+
+bool isNumericValue(const Value &value) {
+  return isIntegerValue(value) || isFloatValue(value);
+}
+
+double toDouble(const Value &value) {
+  if (value.type == ValueType::Float) {
+    return std::get<double>(value.data);
+  }
+  return static_cast<double>(std::get<int>(value.data));
+}
+
+Value numericBinaryResult(const Value &left, const Value &right,
+                          TokenType operation) {
+  if (!isNumericValue(left) || !isNumericValue(right)) {
+    throw std::runtime_error("Expected numeric operands.");
+  }
+
+  const bool useFloat = isFloatValue(left) || isFloatValue(right);
+
+  if (useFloat) {
+    const double lhs = toDouble(left);
+    const double rhs = toDouble(right);
+
+    switch (operation) {
+    case TokenType::Plus:
+      return Value(ValueType::Float, lhs + rhs);
+    case TokenType::Minus:
+      return Value(ValueType::Float, lhs - rhs);
+    case TokenType::Star:
+      return Value(ValueType::Float, lhs * rhs);
+    case TokenType::Slash:
+      return Value(ValueType::Float, lhs / rhs);
+    case TokenType::Greater:
+      return Value(ValueType::Bool, lhs > rhs);
+    case TokenType::GreaterEqual:
+      return Value(ValueType::Bool, lhs >= rhs);
+    case TokenType::Less:
+      return Value(ValueType::Bool, lhs < rhs);
+    case TokenType::LessEqual:
+      return Value(ValueType::Bool, lhs <= rhs);
+    case TokenType::EqualEqual:
+      return Value(ValueType::Bool, lhs == rhs);
+    case TokenType::NotEqual:
+      return Value(ValueType::Bool, lhs != rhs);
+    default:
+      break;
+    }
+  }
+
+  const int lhs = std::get<int>(left.data);
+  const int rhs = std::get<int>(right.data);
+
+  switch (operation) {
+  case TokenType::Plus:
+    return Value(ValueType::Int, lhs + rhs);
+  case TokenType::Minus:
+    return Value(ValueType::Int, lhs - rhs);
+  case TokenType::Star:
+    return Value(ValueType::Int, lhs * rhs);
+  case TokenType::Slash:
+    return Value(ValueType::Int, lhs / rhs);
+  case TokenType::Greater:
+    return Value(ValueType::Bool, lhs > rhs);
+  case TokenType::GreaterEqual:
+    return Value(ValueType::Bool, lhs >= rhs);
+  case TokenType::Less:
+    return Value(ValueType::Bool, lhs < rhs);
+  case TokenType::LessEqual:
+    return Value(ValueType::Bool, lhs <= rhs);
+  case TokenType::EqualEqual:
+    return Value(ValueType::Bool, lhs == rhs);
+  case TokenType::NotEqual:
+    return Value(ValueType::Bool, lhs != rhs);
+  default:
+    break;
+  }
+
+  throw std::runtime_error("Unsupported numeric operator.");
+}
+
+} // namespace
 
 void Interpreter::execute(const std::vector<std::unique_ptr<Stmt>> &program) {
   for (const auto &stmt : program) {
@@ -80,6 +169,9 @@ void Interpreter::execStmt(const Stmt &stmt) {
     switch (value.type) {
     case ValueType::Int:
       std::cout << std::get<int>(value.data);
+      break;
+    case ValueType::Float:
+      std::cout << std::get<double>(value.data);
       break;
     case ValueType::String:
       std::cout << std::get<std::string>(value.data);
@@ -248,6 +340,10 @@ Value Interpreter::evalExpr(const Expr &expr) {
     return Value(ValueType::Int, e->value);
   }
 
+  if (auto e = dynamic_cast<const FloatExpr *>(&expr)) {
+    return Value(ValueType::Float, e->value);
+  }
+
   if (auto e = dynamic_cast<const StringExpr *>(&expr)) {
     return Value(ValueType::String, e->value);
   }
@@ -264,86 +360,94 @@ Value Interpreter::evalExpr(const Expr &expr) {
   if (auto e = dynamic_cast<const UnaryExpr *>(&expr)) {
     Value right = evalExpr(*(e->operand));
     if (e->op == TokenType::Minus) {
-      if (right.type != ValueType::Int) {
-        throw std::runtime_error("Expected an int in unary operator.");
+      if (right.type == ValueType::Int) {
+        return Value(ValueType::Int, -std::get<int>(right.data));
       }
-      return Value(ValueType::Int, -std::get<int>(right.data));
+      if (right.type == ValueType::Float) {
+        return Value(ValueType::Float, -std::get<double>(right.data));
+      }
+      throw std::runtime_error("Expected a numeric value in unary operator.");
+    }
+    if (e->op == TokenType::Bang) {
+      if (right.type != ValueType::Bool) {
+        throw std::runtime_error("Expected a Bool in unary operator.");
+      }
+      return Value(ValueType::Bool, !std::get<bool>(right.data));
     }
   }
 
   if (auto e = dynamic_cast<const BinaryExpr *>(&expr)) {
     Value left = evalExpr(*(e->left));
-    Value right = evalExpr(*(e->right));
     switch (e->op) {
-    case (TokenType::Plus):
-      if (left.type != ValueType::Int || right.type != ValueType::Int) {
-        throw std::runtime_error("Expected + of two ints.");
+    case (TokenType::AndAnd):
+      if (left.type != ValueType::Bool) {
+        throw std::runtime_error("Expected && left operand to be Bool.");
       }
-      return Value(ValueType::Int,
-                   std::get<int>(left.data) + std::get<int>(right.data));
+      if (!std::get<bool>(left.data)) {
+        return Value(ValueType::Bool, false);
+      }
+      {
+        Value right = evalExpr(*(e->right));
+        if (right.type != ValueType::Bool) {
+          throw std::runtime_error("Expected && right operand to be Bool.");
+        }
+        return Value(ValueType::Bool, std::get<bool>(right.data));
+      }
+
+    case (TokenType::OrOr):
+      if (left.type != ValueType::Bool) {
+        throw std::runtime_error("Expected || left operand to be Bool.");
+      }
+      if (std::get<bool>(left.data)) {
+        return Value(ValueType::Bool, true);
+      }
+      {
+        Value right = evalExpr(*(e->right));
+        if (right.type != ValueType::Bool) {
+          throw std::runtime_error("Expected || right operand to be Bool.");
+        }
+        return Value(ValueType::Bool, std::get<bool>(right.data));
+      }
+
+    case (TokenType::Caret):
+      {
+        Value right = evalExpr(*(e->right));
+        if (left.type != ValueType::Bool || right.type != ValueType::Bool) {
+          throw std::runtime_error("Expected ^ of two Bools.");
+        }
+        return Value(ValueType::Bool,
+                     std::get<bool>(left.data) != std::get<bool>(right.data));
+      }
+
+    case (TokenType::Plus):
+      return numericBinaryResult(left, evalExpr(*(e->right)), e->op);
 
     case (TokenType::Minus):
-      if (left.type != ValueType::Int || right.type != ValueType::Int) {
-        throw std::runtime_error("Expected - of two ints.");
-      }
-      return Value(ValueType::Int,
-                   std::get<int>(left.data) - std::get<int>(right.data));
+      return numericBinaryResult(left, evalExpr(*(e->right)), e->op);
 
     case (TokenType::Star):
-      if (left.type != ValueType::Int || right.type != ValueType::Int) {
-        throw std::runtime_error("Expected * of two ints.");
-      }
-      return Value(ValueType::Int,
-                   std::get<int>(left.data) * std::get<int>(right.data));
+      return numericBinaryResult(left, evalExpr(*(e->right)), e->op);
 
     case (TokenType::Slash):
-      if (left.type != ValueType::Int || right.type != ValueType::Int) {
-        throw std::runtime_error("Expected / of two ints.");
-      }
-      return Value(ValueType::Int,
-                   std::get<int>(left.data) / std::get<int>(right.data));
+      return numericBinaryResult(left, evalExpr(*(e->right)), e->op);
 
     case (TokenType::Greater):
-      if (left.type != ValueType::Int || right.type != ValueType::Int) {
-        throw std::runtime_error("Expected > of two ints.");
-      }
-      return Value(ValueType::Bool,
-                   std::get<int>(left.data) > std::get<int>(right.data));
+      return numericBinaryResult(left, evalExpr(*(e->right)), e->op);
 
     case (TokenType::GreaterEqual):
-      if (left.type != ValueType::Int || right.type != ValueType::Int) {
-        throw std::runtime_error("Expected >= of two ints.");
-      }
-      return Value(ValueType::Bool,
-                   std::get<int>(left.data) >= std::get<int>(right.data));
+      return numericBinaryResult(left, evalExpr(*(e->right)), e->op);
 
     case (TokenType::Less):
-      if (left.type != ValueType::Int || right.type != ValueType::Int) {
-        throw std::runtime_error("Expected < of two ints.");
-      }
-      return Value(ValueType::Bool,
-                   std::get<int>(left.data) < std::get<int>(right.data));
+      return numericBinaryResult(left, evalExpr(*(e->right)), e->op);
 
     case (TokenType::LessEqual):
-      if (left.type != ValueType::Int || right.type != ValueType::Int) {
-        throw std::runtime_error("Expected <= of two ints.");
-      }
-      return Value(ValueType::Bool,
-                   std::get<int>(left.data) <= std::get<int>(right.data));
+      return numericBinaryResult(left, evalExpr(*(e->right)), e->op);
 
     case (TokenType::EqualEqual):
-      if (left.type != ValueType::Int || right.type != ValueType::Int) {
-        throw std::runtime_error("Expected == of two ints.");
-      }
-      return Value(ValueType::Bool,
-                   std::get<int>(left.data) == std::get<int>(right.data));
+      return numericBinaryResult(left, evalExpr(*(e->right)), e->op);
 
     case (TokenType::NotEqual):
-      if (left.type != ValueType::Int || right.type != ValueType::Int) {
-        throw std::runtime_error("Expected != of two ints.");
-      }
-      return Value(ValueType::Bool,
-                   std::get<int>(left.data) != std::get<int>(right.data));
+      return numericBinaryResult(left, evalExpr(*(e->right)), e->op);
     default:
       break;
     }
@@ -358,23 +462,60 @@ void Interpreter::checkType(const std::string &declaredType,
     return;
   }
 
-  if (declaredType == "Int") {
-    if (value.type != ValueType::Int) {
-      throw std::runtime_error("Type error: expected Int.");
-    }
-    return;
-  }
-
-  if (declaredType == "String") {
+  if (declaredType == "string") {
     if (value.type != ValueType::String) {
-      throw std::runtime_error("Type error: expected String.");
+      throw std::runtime_error("Type error: expected string.");
     }
     return;
   }
 
-  if (declaredType == "Bool") {
+  if (declaredType == "bool") {
     if (value.type != ValueType::Bool) {
-      throw std::runtime_error("Type error: expected Bool.");
+      throw std::runtime_error("Type error: expected bool.");
+    }
+    return;
+  }
+
+  if (declaredType == "float32" || declaredType == "float64") {
+    if (!isNumericValue(value)) {
+      throw std::runtime_error("Type error: expected " + declaredType + ".");
+    }
+    return;
+  }
+
+  if (declaredType == "uint8" || declaredType == "int8" ||
+      declaredType == "uint16" || declaredType == "int16" ||
+      declaredType == "uint32" || declaredType == "int32" ||
+      declaredType == "uint64" || declaredType == "int64") {
+    if (value.type != ValueType::Int) {
+      throw std::runtime_error("Type error: expected " + declaredType + ".");
+    }
+
+    const int numericValue = std::get<int>(value.data);
+
+    if (declaredType == "uint8" &&
+        (numericValue < 0 || numericValue > std::numeric_limits<unsigned char>::max())) {
+      throw std::runtime_error("Type error: value out of range for uint8.");
+    }
+    if (declaredType == "int8" &&
+        (numericValue < std::numeric_limits<signed char>::min() ||
+         numericValue > std::numeric_limits<signed char>::max())) {
+      throw std::runtime_error("Type error: value out of range for int8.");
+    }
+    if (declaredType == "uint16" &&
+        (numericValue < 0 || numericValue > std::numeric_limits<unsigned short>::max())) {
+      throw std::runtime_error("Type error: value out of range for uint16.");
+    }
+    if (declaredType == "int16" &&
+        (numericValue < std::numeric_limits<short>::min() ||
+         numericValue > std::numeric_limits<short>::max())) {
+      throw std::runtime_error("Type error: value out of range for int16.");
+    }
+    if (declaredType == "uint32" && numericValue < 0) {
+      throw std::runtime_error("Type error: value out of range for uint32.");
+    }
+    if (declaredType == "uint64" && numericValue < 0) {
+      throw std::runtime_error("Type error: value out of range for uint64.");
     }
     return;
   }

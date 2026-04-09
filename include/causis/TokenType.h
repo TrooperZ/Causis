@@ -11,6 +11,7 @@ enum class TokenType {
 
   // Literal values written directly in source.
   IntLiteral,    // 123
+  FloatLiteral,  // 1.5
   StringLiteral, // "hello"
 
   // Keywords for declarations and built-in language constructs.
@@ -21,9 +22,19 @@ enum class TokenType {
   KwPrint,  // Built-in print statement/function: print(x)
 
   // Built-in primitive type keywords.
-  KwInt,    // Type name Int
-  KwString, // Type name String
-  KwBool,   // Type name Bool
+  KwInt,
+  KwString,
+  KwBool,
+  KwUint8,
+  KwInt8,
+  KwUint16,
+  KwInt16,
+  KwUint32,
+  KwInt32,
+  KwUint64,
+  KwInt64,
+  KwFloat32,
+  KwFloat64,
 
   // Boolean literal keywords.
   KwTrue,  // Boolean literal true
@@ -55,6 +66,10 @@ enum class TokenType {
   LessEqual,    // <=
   EqualEqual,   // ==
   NotEqual,     // !=
+  AndAnd,       // &&
+  OrOr,         // ||
+  Caret,        // ^   Logical xor
+  Bang,         // !   Logical not
 
   // Conditionals
   KwIf,   // If statement declaration

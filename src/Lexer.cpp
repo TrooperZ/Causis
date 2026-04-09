@@ -78,6 +78,26 @@ void Lexer::scanToken() {
     addToken(TokenType::Slash);
     break;
 
+  case '&':
+    if (match('&')) {
+      addToken(TokenType::AndAnd);
+    } else {
+      throw std::runtime_error("Unexpected character");
+    }
+    break;
+
+  case '|':
+    if (match('|')) {
+      addToken(TokenType::OrOr);
+    } else {
+      throw std::runtime_error("Unexpected character");
+    }
+    break;
+
+  case '^':
+    addToken(TokenType::Caret);
+    break;
+
   /* Two‑char operators */
   case '=':
     if (match('=')) {
@@ -104,7 +124,7 @@ void Lexer::scanToken() {
     if (match('=')) {
       addToken(TokenType::NotEqual);
     } else {
-      throw std::runtime_error("Unexpected character");
+      addToken(TokenType::Bang);
     }
     break;
 
@@ -186,6 +206,18 @@ void Lexer::scanString() {
 void Lexer::scanNumber() {
   while (!isAtEnd() && std::isdigit(static_cast<unsigned char>(peek()))) {
     advance();
+  }
+
+  if (!isAtEnd() && peek() == '.' &&
+      std::isdigit(static_cast<unsigned char>(peekNext()))) {
+    advance();
+
+    while (!isAtEnd() && std::isdigit(static_cast<unsigned char>(peek()))) {
+      advance();
+    }
+
+    addToken(TokenType::FloatLiteral);
+    return;
   }
 
   addToken(TokenType::IntLiteral);

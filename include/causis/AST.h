@@ -17,6 +17,10 @@ struct IntExpr : Expr {
   int value = 0;
 };
 
+struct FloatExpr : Expr {
+  double value = 0.0;
+};
+
 struct StringExpr : Expr {
   std::string value;
 };

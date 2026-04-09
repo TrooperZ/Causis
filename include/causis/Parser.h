@@ -31,8 +31,10 @@ private:
   const Token &advance();
 
   bool check(TokenType type) const;
+  bool isTypeToken(TokenType type) const;
   bool match(std::initializer_list<TokenType> types);
   const Token &consume(TokenType type, const std::string &message);
+  std::string parseTypeName(const std::string &context);
 
   /*
   Parser chain follows this ordering:
@@ -42,6 +44,9 @@ private:
   Print/Assignment
 
   Expression
+  Logical Or
+  Logical Xor
+  Logical And
   Equality
   Comparison
   Term
@@ -66,6 +71,9 @@ private:
   std::unique_ptr<Stmt> parseContinueStatement();
 
   std::unique_ptr<Expr> parseExpression();
+  std::unique_ptr<Expr> parseLogicalOr();
+  std::unique_ptr<Expr> parseLogicalXor();
+  std::unique_ptr<Expr> parseLogicalAnd();
   std::unique_ptr<Expr> parseEquality();
   std::unique_ptr<Expr> parseComparison();
   std::unique_ptr<Expr> parseTerm();

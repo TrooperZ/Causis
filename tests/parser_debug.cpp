@@ -25,6 +25,14 @@ const char *tokenTypeName(causis::TokenType type) {
     return "EqualEqual";
   case causis::TokenType::NotEqual:
     return "NotEqual";
+  case causis::TokenType::AndAnd:
+    return "AndAnd";
+  case causis::TokenType::OrOr:
+    return "OrOr";
+  case causis::TokenType::Caret:
+    return "Caret";
+  case causis::TokenType::Bang:
+    return "Bang";
   case causis::TokenType::Greater:
     return "Greater";
   case causis::TokenType::GreaterEqual:

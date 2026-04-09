@@ -34,6 +34,7 @@ The current subset supports:
 - reassignment with `=`
 - arithmetic expressions
 - comparisons and equality
+- logical operators: `&&`, `||`, `!`, `^`
 - `print(...)`
 - semicolon-terminated statements
 

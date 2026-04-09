@@ -33,6 +33,27 @@ bool Parser::check(TokenType type) const {
   return peek().type == type;
 }
 
+bool Parser::isTypeToken(TokenType type) const {
+  switch (type) {
+  case TokenType::KwBool:
+  case TokenType::KwString:
+  case TokenType::KwInt:
+  case TokenType::KwUint8:
+  case TokenType::KwInt8:
+  case TokenType::KwUint16:
+  case TokenType::KwInt16:
+  case TokenType::KwUint32:
+  case TokenType::KwInt32:
+  case TokenType::KwUint64:
+  case TokenType::KwInt64:
+  case TokenType::KwFloat32:
+  case TokenType::KwFloat64:
+    return true;
+  default:
+    return false;
+  }
+}
+
 bool Parser::match(std::initializer_list<TokenType> types) {
   for (const auto &t : types) {
     if (check(t)) {
@@ -49,6 +70,27 @@ const Token &Parser::consume(TokenType type, const std::string &message) {
   }
 
   throw std::runtime_error(message + " Found: " + peek().lexeme);
+}
+
+std::string Parser::parseTypeName(const std::string &context) {
+  if (!isTypeToken(peek().type)) {
+    throw std::runtime_error("Expected type definition " + context +
+                             ". Found: " + peek().lexeme);
+  }
+
+  const Token &type = advance();
+
+  if (type.lexeme == "Int") {
+    return "int32";
+  }
+  if (type.lexeme == "Bool") {
+    return "bool";
+  }
+  if (type.lexeme == "String") {
+    return "string";
+  }
+
+  return type.lexeme;
 }
 
 std::vector<std::unique_ptr<Stmt>> Parser::parse() {
@@ -110,7 +152,55 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
   return parseAssignmentStatement();
 }
 
-std::unique_ptr<Expr> Parser::parseExpression() { return parseEquality(); }
+std::unique_ptr<Expr> Parser::parseExpression() { return parseLogicalOr(); }
+
+std::unique_ptr<Expr> Parser::parseLogicalOr() {
+  std::unique_ptr<Expr> expr = parseLogicalXor();
+
+  while (match({TokenType::OrOr})) {
+    TokenType operation = previous().type;
+    std::unique_ptr<Expr> right = parseLogicalXor();
+    auto node = std::make_unique<BinaryExpr>();
+    node->left = std::move(expr);
+    node->op = operation;
+    node->right = std::move(right);
+    expr = std::move(node);
+  }
+
+  return expr;
+}
+
+std::unique_ptr<Expr> Parser::parseLogicalXor() {
+  std::unique_ptr<Expr> expr = parseLogicalAnd();
+
+  while (match({TokenType::Caret})) {
+    TokenType operation = previous().type;
+    std::unique_ptr<Expr> right = parseLogicalAnd();
+    auto node = std::make_unique<BinaryExpr>();
+    node->left = std::move(expr);
+    node->op = operation;
+    node->right = std::move(right);
+    expr = std::move(node);
+  }
+
+  return expr;
+}
+
+std::unique_ptr<Expr> Parser::parseLogicalAnd() {
+  std::unique_ptr<Expr> expr = parseEquality();
+
+  while (match({TokenType::AndAnd})) {
+    TokenType operation = previous().type;
+    std::unique_ptr<Expr> right = parseEquality();
+    auto node = std::make_unique<BinaryExpr>();
+    node->left = std::move(expr);
+    node->op = operation;
+    node->right = std::move(right);
+    expr = std::move(node);
+  }
+
+  return expr;
+}
 
 std::unique_ptr<Expr> Parser::parseEquality() {
   std::unique_ptr<Expr> expr = parseComparison();
@@ -174,7 +264,7 @@ std::unique_ptr<Expr> Parser::parseFactor() {
 }
 
 std::unique_ptr<Expr> Parser::parseUnary() {
-  if (match({TokenType::Minus})) {
+  if (match({TokenType::Minus, TokenType::Bang})) {
     TokenType operation = previous().type;
     std::unique_ptr<Expr> right = parseUnary();
     auto node = std::make_unique<UnaryExpr>();
@@ -209,6 +299,12 @@ std::unique_ptr<Expr> Parser::parsePrimary() {
   if (match({TokenType::IntLiteral})) {
     auto node = std::make_unique<IntExpr>();
     node->value = std::stoi(previous().lexeme);
+    return node;
+  }
+
+  if (match({TokenType::FloatLiteral})) {
+    auto node = std::make_unique<FloatExpr>();
+    node->value = std::stod(previous().lexeme);
     return node;
   }
 
@@ -252,11 +348,7 @@ std::unique_ptr<Stmt> Parser::parseLetDeclaration(bool mutableState) {
   std::string typeName = "";
 
   if (match({TokenType::Colon})) {
-    if (match({TokenType::KwBool, TokenType::KwInt, TokenType::KwString})) {
-      typeName = previous().lexeme;
-    } else {
-      throw std::runtime_error("Expected type definition after ':'.");
-    }
+    typeName = parseTypeName("after ':'");
   }
 
   consume(TokenType::Equal, "Expected '=' after variable name in declaration.");
@@ -325,10 +417,7 @@ std::unique_ptr<Stmt> Parser::parseFnDeclaration() {
           consume(TokenType::Identifier, "Expected parameter name.");
       consume(TokenType::Colon, "Expected ':' after parameter name.");
 
-      std::string paramType = "";
-      if (match({TokenType::KwInt, TokenType::KwString, TokenType::KwBool})) {
-        paramType = previous().lexeme;
-      }
+      std::string paramType = parseTypeName("after ':'");
 
       params.push_back({paramName.lexeme, paramType});
     } while (match({TokenType::Comma}));
@@ -339,11 +428,7 @@ std::unique_ptr<Stmt> Parser::parseFnDeclaration() {
   std::string typeName = "";
 
   if (match({TokenType::ThinArrow})) {
-    if (match({TokenType::KwBool, TokenType::KwInt, TokenType::KwString})) {
-      typeName = previous().lexeme;
-    } else {
-      throw std::runtime_error("Expected type definition after '->'.");
-    }
+    typeName = parseTypeName("after '->'");
   }
 
   auto body = parseBlockStatement();

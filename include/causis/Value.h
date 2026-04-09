@@ -11,7 +11,7 @@ namespace causis {
 struct BlockStmt;
 class Environment;
 
-enum class ValueType { Int, String, Bool, Function, Void };
+enum class ValueType { Int, Float, String, Bool, Function, Void };
 
 struct FunctionValue {
   std::vector<std::pair<std::string, std::string>> params;
@@ -21,7 +21,7 @@ struct FunctionValue {
 };
 
 struct Value {
-  using Storage = std::variant<int, std::string, bool,
+  using Storage = std::variant<int, double, std::string, bool,
                                std::shared_ptr<FunctionValue>, std::monostate>;
 
   ValueType type = ValueType::Void;
