@@ -1,25 +1,61 @@
-let seed: Int = 2;
-state counter: Int = 0;
-state total: Int = 0;
+let seed: int32 = 2;
+state counter: int32 = 0;
+state total: int32 = 0;
+
+print("=== logic ===\n");
+let a: bool = true;
+let b: bool = false;
+
+print(!(a && b) || (a ^ b));
+print("\n");
+
+print("=== types ===\n");
+let byteValue: uint8 = 255;
+let smallSigned: int8 = -8;
+let mediumUnsigned: uint16 = 65000;
+let mediumSigned: int16 = -1234;
+let regularSigned: int32 = 42;
+let signed64: int64 = 9000;
+let ratio32: float32 = 1.5;
+let ratio64: float64 = ratio32 + 2.25;
+let label: string = "typed values";
+
+print(byteValue);
+print("\n");
+print(smallSigned);
+print("\n");
+print(mediumUnsigned);
+print("\n");
+print(mediumSigned);
+print("\n");
+print(regularSigned);
+print("\n");
+print(signed64);
+print("\n");
+print(ratio64);
+print("\n");
+print(label);
+print("\n");
+
 
 print("=== blocks ===\n");
 {
-  let scoped: Int = seed + 3;
+  let scoped: int32 = seed + 3;
   print(scoped);
   print("\n");
 }
 
 print("=== functions ===\n");
-fn add(a: Int, b: Int) -> Int {
-  let result: Int = a + b;
+fn add(a: int32, b: int32) -> int32 {
+  let result: int32 = a + b;
   return result;
 }
 
-fn double(value: Int) -> Int {
+fn double(value: int32) -> int32 {
   return value + value;
 }
 
-fn classify(value: Int) -> Int {
+fn classify(value: int32) -> int32 {
   if (value > 10) {
     return 1;
   } else if (value == 10) {
@@ -59,13 +95,13 @@ print(total);
 print("\n");
 
 print("=== for ===\n");
-for (state i: Int = 0; i < 3; i = i + 1) {
+for (state i: int32 = 0; i < 3; i = i + 1) {
   print(i);
   print("\n");
 }
 
 print("=== break / continue while ===\n");
-state scan: Int = 0;
+state scan: int32 = 0;
 while (scan < 5) {
   scan = scan + 1;
 
@@ -82,7 +118,7 @@ while (scan < 5) {
 }
 
 print("=== break / continue for ===\n");
-for (state j: Int = 0; j < 6; j = j + 1) {
+for (state j: int32 = 0; j < 6; j = j + 1) {
   if (j == 1) {
     continue;
   }

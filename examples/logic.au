@@ -1,4 +1,4 @@
-let a: Bool = true;
-let b: Bool = false;
+let a: bool = true;
+let b: bool = false;
 
 print(!(a && b) || (a ^ b));

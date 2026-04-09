@@ -37,7 +37,6 @@ bool Parser::isTypeToken(TokenType type) const {
   switch (type) {
   case TokenType::KwBool:
   case TokenType::KwString:
-  case TokenType::KwInt:
   case TokenType::KwUint8:
   case TokenType::KwInt8:
   case TokenType::KwUint16:
@@ -79,10 +78,6 @@ std::string Parser::parseTypeName(const std::string &context) {
   }
 
   const Token &type = advance();
-
-  if (type.lexeme == "Int") {
-    return "int32";
-  }
   if (type.lexeme == "Bool") {
     return "bool";
   }

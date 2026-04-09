@@ -22,7 +22,6 @@ enum class TokenType {
   KwPrint,  // Built-in print statement/function: print(x)
 
   // Built-in primitive type keywords.
-  KwInt,
   KwString,
   KwBool,
   KwUint8,
