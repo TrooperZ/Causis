@@ -23,6 +23,14 @@ void Interpreter::execStmt(const Stmt &stmt) {
     return;
   }
 
+  if (dynamic_cast<const BreakStmt *>(&stmt)) {
+    throw BreakValue{};
+  }
+
+  if (dynamic_cast<const ContinueStmt *>(&stmt)) {
+    throw ContinueValue{};
+  }
+
   if (auto s = dynamic_cast<const LetStmt *>(&stmt)) {
     Value value = evalExpr(*(s->initializer));
     checkType(s->typeName, value);
@@ -118,7 +126,13 @@ void Interpreter::execStmt(const Stmt &stmt) {
         break;
       }
 
-      execStmt(*s->body);
+      try {
+        execStmt(*s->body);
+      } catch (const ContinueValue &) {
+        continue;
+      } catch (const BreakValue &) {
+        break;
+      }
     }
 
     return;
@@ -147,7 +161,16 @@ void Interpreter::execStmt(const Stmt &stmt) {
           }
         }
 
-        execStmt(*s->body);
+        try {
+          execStmt(*s->body);
+        } catch (const ContinueValue &) {
+          if (s->increment != nullptr) {
+            execStmt(*s->increment);
+          }
+          continue;
+        } catch (const BreakValue &) {
+          break;
+        }
 
         if (s->increment != nullptr) {
           execStmt(*s->increment);

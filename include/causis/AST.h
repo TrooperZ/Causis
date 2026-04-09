@@ -98,4 +98,7 @@ struct ForStmt : Stmt {
   std::unique_ptr<Stmt> body;
 };
 
+struct BreakStmt : Stmt {};
+struct ContinueStmt : Stmt {};
+
 } // namespace causis

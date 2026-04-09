@@ -29,7 +29,8 @@ private:
       {"String", TokenType::KwString}, {"Bool", TokenType::KwBool},
       {"true", TokenType::KwTrue},     {"false", TokenType::KwFalse},
       {"if", TokenType::KwIf},         {"else", TokenType::KwElse},
-      {"for", TokenType::KwFor},       {"while", TokenType::KwWhile}
+      {"for", TokenType::KwFor},       {"while", TokenType::KwWhile},
+      {"break", TokenType::KwBreak},   {"continue", TokenType::KwContinue},
 
   };
 

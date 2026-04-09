@@ -63,3 +63,34 @@ for (state i: Int = 0; i < 3; i = i + 1) {
   print(i);
   print("\n");
 }
+
+print("=== break / continue while ===\n");
+state scan: Int = 0;
+while (scan < 5) {
+  scan = scan + 1;
+
+  if (scan == 2) {
+    continue;
+  }
+
+  if (scan == 4) {
+    break;
+  }
+
+  print(scan);
+  print("\n");
+}
+
+print("=== break / continue for ===\n");
+for (state j: Int = 0; j < 6; j = j + 1) {
+  if (j == 1) {
+    continue;
+  }
+
+  if (j == 4) {
+    break;
+  }
+
+  print(j);
+  print("\n");
+}

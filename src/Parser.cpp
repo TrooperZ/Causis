@@ -99,6 +99,14 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
     return parseForStatement();
   }
 
+  if (match({TokenType::KwBreak})) {
+    return parseBreakStatement();
+  }
+
+  if (match({TokenType::KwContinue})) {
+    return parseContinueStatement();
+  }
+
   return parseAssignmentStatement();
 }
 
@@ -446,6 +454,16 @@ std::unique_ptr<Stmt> Parser::parseForStatement() {
   stmt->increment = std::move(increment);
   stmt->body = std::move(body);
   return stmt;
+}
+
+std::unique_ptr<Stmt> Parser::parseBreakStatement() {
+  consume(TokenType::Semicolon, "Expected ';' after break.");
+  return std::make_unique<BreakStmt>();
+}
+
+std::unique_ptr<Stmt> Parser::parseContinueStatement() {
+  consume(TokenType::Semicolon, "Expected ';' after continue.");
+  return std::make_unique<ContinueStmt>();
 }
 
 } // namespace causis

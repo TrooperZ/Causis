@@ -11,13 +11,7 @@ namespace causis {
 struct BlockStmt;
 class Environment;
 
-enum class ValueType {
-  Int,
-  String,
-  Bool,
-  Function,
-  Void
-};
+enum class ValueType { Int, String, Bool, Function, Void };
 
 struct FunctionValue {
   std::vector<std::pair<std::string, std::string>> params;
@@ -37,5 +31,8 @@ struct Value {
 struct ReturnValue {
   Value value;
 };
+
+struct BreakValue {};
+struct ContinueValue {};
 
 } // namespace causis

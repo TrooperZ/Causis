@@ -19,10 +19,6 @@ enum class TokenType {
   KwFn,     // Function declaration: fn add(a: Int, b: Int) -> Int => a + b
   KwReturn, // Return statement inside a function block
   KwPrint,  // Built-in print statement/function: print(x)
-  KwIf,     // If statement declaration
-  KwElse,   // Else declaration for if statements, can chain if, else if, else
-  KwFor,    // For loop declaration
-  KwWhile,  // While loop declaration
 
   // Built-in primitive type keywords.
   KwInt,    // Type name Int
@@ -59,6 +55,16 @@ enum class TokenType {
   LessEqual,    // <=
   EqualEqual,   // ==
   NotEqual,     // !=
+
+  // Conditionals
+  KwIf,   // If statement declaration
+  KwElse, // Else declaration for if statements, can chain if, else if, else
+
+  // Loops
+  KwFor,      // For loop declaration
+  KwWhile,    // While loop declaration
+  KwBreak,    // Stop a loop
+  KwContinue, // Skip over a loop iteration
 
   // Marks the logical end of the input stream.
   EndOfFile
