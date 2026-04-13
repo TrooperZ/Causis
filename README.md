@@ -1,82 +1,150 @@
 # Causis
 
-<p align="center">
-  <em>A reactive interpreted language.</em>
-</p>
+<div align="center">
 
-<p align="center">
-  <a href="#overview">Overview</a> •
-  <a href="#why-causis">Why Causis</a> •
-  <a href="#current-language">Current Language</a> •
-  <a href="#how-it-works">How It Works</a> •
-  <a href="#project-layout">Project Layout</a> •
-  <a href="#getting-started">Getting Started</a> •
-  <a href="#roadmap">Roadmap</a>
-</p>
+**A small interpreted language for experimenting with typed state, control flow, and reactive language ideas.**
 
----
+[Getting started](#getting-started) | [Language snapshot](#language-snapshot) | [Project layout](#project-layout) | [Roadmap](#roadmap)
 
-## Overview
+</div>
 
+## What Is Causis?
 
+Causis is a C++-built programming language project focused on growing a clean, understandable core before moving into its longer-term reactive ambitions.
 
----
+Today, the repository contains:
 
-## Why Causis
+- a lexer
+- a recursive-descent parser
+- a tree-walk interpreter
+- lexical block scoping
+- typed bindings with runtime checks
+- functions and basic control flow
 
+The current implementation is best thought of as an early language core, not a finished language product.
 
-## Current Language
+## Why Causis?
 
-The current subset supports:
+The project explores a language model built around a few ideas:
 
-- `let` declarations
-- `state` declarations
+- `let` for immutable bindings
+- `state` for explicit mutable state
+- approachable syntax with familiar control flow
+- incremental development toward richer reactive constructs
+
+That means the README should describe the language as it exists now, while still making the direction clear: Causis is building toward reactivity on top of a simple executable core.
+
+## Language Snapshot
+
+The current language supports:
+
+- immutable declarations with `let`
+- mutable declarations with `state`
+- optional declared types on bindings
+- integer, floating-point, string, and boolean literals
+- arithmetic: `+`, `-`, `*`, `/`
+- comparisons: `>`, `>=`, `<`, `<=`, `==`, `!=`
+- boolean logic: `&&`, `||`, `!`, `^`
 - reassignment with `=`
-- arithmetic expressions
-- comparisons and equality
-- logical operators: `&&`, `||`, `!`, `^`
+- block scopes with `{ ... }`
+- functions with typed parameters and optional return types
+- `return`
+- `if`, `else if`, `else`
+- `while`
+- `for`
+- `break` and `continue`
 - `print(...)`
-- semicolon-terminated statements
 
-### Example
+Supported declared types currently include:
 
-```causis
-let x = 5;
-state y = 10;
+- `bool`
+- `string`
+- `uint8`, `int8`
+- `uint16`, `int16`
+- `uint32`, `int32`
+- `uint64`, `int64`
+- `float32`, `float64`
 
-y = x + 2 * 3;
-print(y);
-```
+Type checks are enforced at runtime. Integer declarations also perform range checks for the smaller integer types currently modeled by the interpreter.
 
-Current output:
-
-```txt
-11
-```
-
-### Example With More Expressions
+## Example
 
 ```causis
-let x = 5;
-state y = 10;
+let seed: int32 = 2;
+state total: int32 = 0;
 
-y = x + 1 * 3;
-print(y);
-print("\n");
+fn add(a: int32, b: int32) -> int32 {
+  return a + b;
+}
 
-let xA = y + 10 * 2 - 200 / 4;
-print(xA + 1);
+for (state i: int32 = 0; i < 3; i = i + 1) {
+  total = total + i;
+}
+
+if (add(seed, total) > 4) {
+  print("ready\n");
+} else {
+  print("waiting\n");
+}
 ```
 
----
+You can find a larger end-to-end example in [examples/program.au](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/examples/program.au).
 
+## Current Status
 
+Running the sample program today:
+
+```bash
+./build/causis examples/program.au
+```
+
+produces:
+
+```text
+=== logic ===
+true
+=== types ===
+255
+-8
+65000
+-1234
+42
+9000
+3.75
+typed values
+=== blocks ===
+5
+=== functions ===
+9
+4
+0
+=== if / else if / else ===
+200
+=== while ===
+0
+1
+2
+while total=3
+=== for ===
+0
+1
+2
+=== break / continue while ===
+1
+3
+=== break / continue for ===
+0
+2
+3
+```
+
+That sample exercises the main pieces of the language that are implemented in this repository right now.
 
 ## Getting Started
 
 ### Prerequisites
 
-- CMake 3.20+
+- CMake 3.20 or newer
 - A C++20-compatible compiler
 
 ### Build
@@ -86,7 +154,7 @@ cmake -S . -B build
 cmake --build build
 ```
 
-### Run the Language
+### Run Causis
 
 ```bash
 ./build/causis examples/program.au
@@ -98,57 +166,42 @@ cmake --build build
 ./build/parser_debug examples/program.au
 ```
 
-This prints:
+`parser_debug` is a developer utility that prints lexer output, statement kinds, and expression tree information to help inspect parsing behavior.
 
-- lexer output
-- parsed statement kinds
-- a basic expression tree for debugging precedence
+## Project Layout
 
----
+- [include/causis](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/include/causis) contains the language headers, AST definitions, runtime value model, and environment types.
+- [src/Lexer.cpp](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/src/Lexer.cpp) implements tokenization.
+- [src/Parser.cpp](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/src/Parser.cpp) implements recursive-descent parsing.
+- [src/Interpreter.cpp](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/src/Interpreter.cpp) executes the AST with runtime type checks and scoped environments.
+- [src/main.cpp](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/src/main.cpp) provides the CLI entrypoint.
+- [tests/parser_debug.cpp](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/tests/parser_debug.cpp) provides the parser inspection executable.
+- [examples](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/examples) contains sample Causis programs.
 
-## What’s Implemented
+## What Is Not There Yet
 
-- [x] token model
-- [x] lexer for identifiers, integers, strings, operators, and semicolons
-- [x] recursive-descent parser
-- [x] expression precedence
-- [x] `let`, `state`, reassignment, and `print`
-- [x] tree-walk interpreter for the current subset
-- [x] runtime environment for bindings
+Causis is still in an early stage. Some important pieces are intentionally missing or incomplete:
 
----
+- no static type checker
+- no modules or imports
+- no user-defined data types
+- no collections or arrays
+- no closures beyond storing function environments for calls
+- no dedicated diagnostic system beyond thrown runtime and parse errors
+- no reactive `derive` or `when` model yet
 
 ## Roadmap
 
-- [ ] typed declarations like `let x: Int = 5;`
-- [ ] real type checking through `checkType()`
-- [ ] function declarations and function calls
-- [ ] scoped function execution
-- [ ] better diagnostics and error messages
-- [ ] arrays and collection operations
-- [ ] `derive` values for reactive computation
-- [ ] `when` blocks for change-driven execution
-- [ ] streams / event-driven features
+Near-term work likely includes:
 
----
+- improving diagnostics and source-aware error reporting
+- expanding the value model and type system
+- adding richer expression and statement forms
+- introducing the first real reactive constructs
+- strengthening tests around parsing and interpretation
 
 ## Design Direction
 
-The long-term language direction for Causis is:
+The long-term goal for Causis is not just to be another small interpreter. The interesting part is the language direction: explicit state, predictable control flow, and eventually a stronger reactive model built on top of a readable core.
 
-- **clear syntax** inspired by approachable languages
-- **mutable state with explicit intent** via `state`
-- **optional types** rather than forcing a strict static system from day one
-- **reactive features** built on top of a solid runtime model
-
-The immediate priority is correctness and clarity, not language complexity.
-
----
-
-## Notes
-
-This project is intentionally iterative.
-
-A lot of the value in Causis is in building the pieces step by step, validating each phase, and learning from the tradeoffs before adding more surface area.
-
-The README will evolve as the language evolves.
+For now, the emphasis is on making the implementation easy to reason about and extending it one solid piece at a time.

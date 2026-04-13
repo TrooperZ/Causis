@@ -19,6 +19,8 @@ private:
   void execStmt(const Stmt &stmt);
   void execBlock(const BlockStmt &blockStmt, Environment &blockEnv);
 
+  Value castValue(const std::string &targetType, const Value &value);
+
   Value evalExpr(const Expr &expr);
 
   void checkType(const std::string &declaredType, const Value &value);

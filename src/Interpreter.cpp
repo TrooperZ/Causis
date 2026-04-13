@@ -4,8 +4,8 @@
 #include "causis/Environment.h"
 #include "causis/TokenType.h"
 
-#include <limits>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <stdexcept>
 
@@ -340,6 +340,11 @@ Value Interpreter::evalExpr(const Expr &expr) {
     return Value(ValueType::Int, e->value);
   }
 
+  if (auto e = dynamic_cast<const CastExpr *>(&expr)) {
+    Value input = evalExpr(*e->value);
+    return castValue(e->targetType, input);
+  }
+
   if (auto e = dynamic_cast<const FloatExpr *>(&expr)) {
     return Value(ValueType::Float, e->value);
   }
@@ -409,15 +414,14 @@ Value Interpreter::evalExpr(const Expr &expr) {
         return Value(ValueType::Bool, std::get<bool>(right.data));
       }
 
-    case (TokenType::Caret):
-      {
-        Value right = evalExpr(*(e->right));
-        if (left.type != ValueType::Bool || right.type != ValueType::Bool) {
-          throw std::runtime_error("Expected ^ of two Bools.");
-        }
-        return Value(ValueType::Bool,
-                     std::get<bool>(left.data) != std::get<bool>(right.data));
+    case (TokenType::Caret): {
+      Value right = evalExpr(*(e->right));
+      if (left.type != ValueType::Bool || right.type != ValueType::Bool) {
+        throw std::runtime_error("Expected ^ of two Bools.");
       }
+      return Value(ValueType::Bool,
+                   std::get<bool>(left.data) != std::get<bool>(right.data));
+    }
 
     case (TokenType::Plus):
       return numericBinaryResult(left, evalExpr(*(e->right)), e->op);
@@ -494,7 +498,8 @@ void Interpreter::checkType(const std::string &declaredType,
     const int numericValue = std::get<int>(value.data);
 
     if (declaredType == "uint8" &&
-        (numericValue < 0 || numericValue > std::numeric_limits<unsigned char>::max())) {
+        (numericValue < 0 ||
+         numericValue > std::numeric_limits<unsigned char>::max())) {
       throw std::runtime_error("Type error: value out of range for uint8.");
     }
     if (declaredType == "int8" &&
@@ -503,7 +508,8 @@ void Interpreter::checkType(const std::string &declaredType,
       throw std::runtime_error("Type error: value out of range for int8.");
     }
     if (declaredType == "uint16" &&
-        (numericValue < 0 || numericValue > std::numeric_limits<unsigned short>::max())) {
+        (numericValue < 0 ||
+         numericValue > std::numeric_limits<unsigned short>::max())) {
       throw std::runtime_error("Type error: value out of range for uint16.");
     }
     if (declaredType == "int16" &&
@@ -521,6 +527,41 @@ void Interpreter::checkType(const std::string &declaredType,
   }
 
   throw std::runtime_error("Unknown declared type: " + declaredType);
+}
+
+Value Interpreter::castValue(const std::string &targetType,
+                             const Value &value) {
+  if (targetType == "float32" || targetType == "float64") {
+    if (value.type == ValueType::Int) {
+      return Value(ValueType::Float,
+                   static_cast<double>(std::get<int>(value.data)));
+    }
+    if (value.type == ValueType::Float) {
+      return value;
+    }
+    throw std::runtime_error("Cannot cast to " + targetType);
+  }
+
+  if (targetType == "uint8" || targetType == "int8" || targetType == "uint16" ||
+      targetType == "int16" || targetType == "uint32" ||
+      targetType == "int32" || targetType == "uint64" ||
+      targetType == "int64") {
+    int converted = 0;
+
+    if (value.type == ValueType::Int) {
+      converted = std::get<int>(value.data);
+    } else if (value.type == ValueType::Float) {
+      converted = static_cast<int>(std::get<double>(value.data));
+    } else {
+      throw std::runtime_error("Cannot cast to " + targetType);
+    }
+
+    Value result(ValueType::Int, converted);
+    checkType(targetType, result);
+    return result;
+  }
+
+  throw std::runtime_error("Unsupported cast target: " + targetType);
 }
 
 } // namespace causis

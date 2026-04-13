@@ -130,3 +130,11 @@ for (state j: int32 = 0; j < 6; j = j + 1) {
   print(j);
   print("\n");
 }
+
+print("=== casting ===\n");
+let x: int32 = 42;
+let a: uint8 = cast_as<uint8>(x);
+let b: float64 = cast_as<float64>(x);
+print(a);
+print("\n");
+print(b);

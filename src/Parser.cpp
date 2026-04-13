@@ -259,6 +259,10 @@ std::unique_ptr<Expr> Parser::parseFactor() {
 }
 
 std::unique_ptr<Expr> Parser::parseUnary() {
+  if (match({TokenType::KwCastAs})) {
+    return parseCastExpression();
+  }
+
   if (match({TokenType::Minus, TokenType::Bang})) {
     TokenType operation = previous().type;
     std::unique_ptr<Expr> right = parseUnary();
@@ -544,6 +548,20 @@ std::unique_ptr<Stmt> Parser::parseBreakStatement() {
 std::unique_ptr<Stmt> Parser::parseContinueStatement() {
   consume(TokenType::Semicolon, "Expected ';' after continue.");
   return std::make_unique<ContinueStmt>();
+}
+
+std::unique_ptr<Expr> Parser::parseCastExpression() {
+  consume(TokenType::Less, "Expected '<' after cast.");
+  std::string targetType = parseTypeName("inside cast");
+  consume(TokenType::Greater, "Expected '>' after cast type.");
+  consume(TokenType::LParen, "Expected '(' after cast type.");
+  auto value = parseExpression();
+  consume(TokenType::RParen, "Expected ')' after cast value.");
+
+  auto expr = std::make_unique<CastExpr>();
+  expr->targetType = targetType;
+  expr->value = std::move(value);
+  return expr;
 }
 
 } // namespace causis

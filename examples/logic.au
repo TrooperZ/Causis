@@ -2,3 +2,10 @@ let a: bool = true;
 let b: bool = false;
 
 print(!(a && b) || (a ^ b));
+
+
+let overflowTest: uint8 = 255;
+print(overflowTest);
+print("\n");
+overflowTest = overflowTest + 1;
+print(overflowTest);

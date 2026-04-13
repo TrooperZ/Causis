@@ -48,6 +48,7 @@ private:
       {"while", TokenType::KwWhile},
       {"break", TokenType::KwBreak},
       {"continue", TokenType::KwContinue},
+      {"cast_as", TokenType::KwCastAs}
 
   };
 

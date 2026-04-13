@@ -49,6 +49,11 @@ struct CallExpr : Expr {
   std::vector<std::unique_ptr<Expr>> args;
 };
 
+struct CastExpr : Expr {
+  std::string targetType;
+  std::unique_ptr<Expr> value;
+};
+
 struct Stmt {
   virtual ~Stmt() = default;
 };

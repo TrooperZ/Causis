@@ -224,8 +224,9 @@ void Lexer::scanNumber() {
 }
 
 void Lexer::scanIdentifier() {
-  while (!isAtEnd() && (isalpha(peek()) ||
-                        std::isdigit(static_cast<unsigned char>(peek())))) {
+  while (!isAtEnd() &&
+         (isalpha(peek()) || std::isdigit(static_cast<unsigned char>(peek())) ||
+          peek() == '_')) {
     advance();
   }
 

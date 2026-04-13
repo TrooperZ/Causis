@@ -20,6 +20,7 @@ enum class TokenType {
   KwFn,     // Function declaration: fn add(a: Int, b: Int) -> Int => a + b
   KwReturn, // Return statement inside a function block
   KwPrint,  // Built-in print statement/function: print(x)
+  KwCastAs, // Type casting keyword
 
   // Built-in primitive type keywords.
   KwString,
