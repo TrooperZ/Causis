@@ -1,3 +1,4 @@
+#include "causis/Language.h"
 #include "causis/Lexer.h"
 #include "causis/TokenType.h"
 #include <_ctype.h>
@@ -232,9 +233,8 @@ void Lexer::scanIdentifier() {
 
   std::string text = _source.substr(_start, _current - _start);
 
-  auto it = _keywords.find(text);
-  if (it != _keywords.end()) {
-    addToken(it->second);
+  if (const auto keyword = lookupKeyword(text); keyword.has_value()) {
+    addToken(*keyword);
   } else {
     addToken(TokenType::Identifier);
   }

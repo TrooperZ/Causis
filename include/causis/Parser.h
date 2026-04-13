@@ -31,7 +31,6 @@ private:
   const Token &advance();
 
   bool check(TokenType type) const;
-  bool isTypeToken(TokenType type) const;
   bool match(std::initializer_list<TokenType> types);
   const Token &consume(TokenType type, const std::string &message);
   std::string parseTypeName(const std::string &context);

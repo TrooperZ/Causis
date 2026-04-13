@@ -1,5 +1,6 @@
 #include "causis/Parser.h"
 #include "causis/AST.h"
+#include "causis/Language.h"
 #include "causis/Token.h"
 #include "causis/TokenType.h"
 
@@ -33,26 +34,6 @@ bool Parser::check(TokenType type) const {
   return peek().type == type;
 }
 
-bool Parser::isTypeToken(TokenType type) const {
-  switch (type) {
-  case TokenType::KwBool:
-  case TokenType::KwString:
-  case TokenType::KwUint8:
-  case TokenType::KwInt8:
-  case TokenType::KwUint16:
-  case TokenType::KwInt16:
-  case TokenType::KwUint32:
-  case TokenType::KwInt32:
-  case TokenType::KwUint64:
-  case TokenType::KwInt64:
-  case TokenType::KwFloat32:
-  case TokenType::KwFloat64:
-    return true;
-  default:
-    return false;
-  }
-}
-
 bool Parser::match(std::initializer_list<TokenType> types) {
   for (const auto &t : types) {
     if (check(t)) {
@@ -72,20 +53,13 @@ const Token &Parser::consume(TokenType type, const std::string &message) {
 }
 
 std::string Parser::parseTypeName(const std::string &context) {
-  if (!isTypeToken(peek().type)) {
+  if (!isTypeKeyword(peek().type)) {
     throw std::runtime_error("Expected type definition " + context +
                              ". Found: " + peek().lexeme);
   }
 
   const Token &type = advance();
-  if (type.lexeme == "Bool") {
-    return "bool";
-  }
-  if (type.lexeme == "String") {
-    return "string";
-  }
-
-  return type.lexeme;
+  return std::string(*typeNameForToken(type.type));
 }
 
 std::vector<std::unique_ptr<Stmt>> Parser::parse() {

@@ -2,6 +2,7 @@
 #include "causis/AST.h"
 #include "causis/Binding.h"
 #include "causis/Environment.h"
+#include "causis/Language.h"
 #include "causis/TokenType.h"
 
 #include <iostream>
@@ -480,17 +481,14 @@ void Interpreter::checkType(const std::string &declaredType,
     return;
   }
 
-  if (declaredType == "float32" || declaredType == "float64") {
+  if (isFloatTypeName(declaredType)) {
     if (!isNumericValue(value)) {
       throw std::runtime_error("Type error: expected " + declaredType + ".");
     }
     return;
   }
 
-  if (declaredType == "uint8" || declaredType == "int8" ||
-      declaredType == "uint16" || declaredType == "int16" ||
-      declaredType == "uint32" || declaredType == "int32" ||
-      declaredType == "uint64" || declaredType == "int64") {
+  if (isIntegerTypeName(declaredType)) {
     if (value.type != ValueType::Int) {
       throw std::runtime_error("Type error: expected " + declaredType + ".");
     }
@@ -531,7 +529,7 @@ void Interpreter::checkType(const std::string &declaredType,
 
 Value Interpreter::castValue(const std::string &targetType,
                              const Value &value) {
-  if (targetType == "float32" || targetType == "float64") {
+  if (isFloatTypeName(targetType)) {
     if (value.type == ValueType::Int) {
       return Value(ValueType::Float,
                    static_cast<double>(std::get<int>(value.data)));
@@ -542,10 +540,7 @@ Value Interpreter::castValue(const std::string &targetType,
     throw std::runtime_error("Cannot cast to " + targetType);
   }
 
-  if (targetType == "uint8" || targetType == "int8" || targetType == "uint16" ||
-      targetType == "int16" || targetType == "uint32" ||
-      targetType == "int32" || targetType == "uint64" ||
-      targetType == "int64") {
+  if (isIntegerTypeName(targetType)) {
     int converted = 0;
 
     if (value.type == ValueType::Int) {

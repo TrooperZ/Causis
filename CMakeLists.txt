@@ -12,6 +12,7 @@ endif()
 
 
 add_library(causis_core SHARED
+  src/Language.cpp
   src/Lexer.cpp
   src/Parser.cpp
   src/Interpreter.cpp
