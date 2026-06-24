@@ -1,0 +1,9 @@
+print("=== derive ===\n");
+
+state count: int32 = 1;
+derive doubled: int32 = count * 2;
+
+for (; count < 6; count = count + 1) {
+    print(doubled);
+    print("\n");
+}
