@@ -138,3 +138,7 @@ let b: float64 = cast_as<float64>(x);
 print(a);
 print("\n");
 print(b);
+
+
+print("=== pointers ===\n");
+let ptr1: ptr<int32> = 1;

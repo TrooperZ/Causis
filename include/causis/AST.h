@@ -107,7 +107,30 @@ struct ForStmt : Stmt {
   std::unique_ptr<Stmt> body;
 };
 
+struct NullExpr : Expr {};
+
+struct AllocExpr : Expr {
+  std::string elementType;
+  std::unique_ptr<Expr> initializer;
+};
+
+struct DerefExpr : Expr {
+  std::unique_ptr<Expr> pointer;
+};
+
+struct DerefAssignStmt : Stmt {
+  std::unique_ptr<Expr> pointer;
+  std::unique_ptr<Expr> value;
+};
+
+struct DeriveStmt : Stmt {
+  std::string name;
+  std::string typeName;
+  std::unique_ptr<Expr> expression;
+};
+
 struct BreakStmt : Stmt {};
+
 struct ContinueStmt : Stmt {};
 
 } // namespace causis

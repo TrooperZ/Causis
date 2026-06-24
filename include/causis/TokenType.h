@@ -17,6 +17,7 @@ enum class TokenType {
   // Keywords for declarations and built-in language constructs.
   KwLet,    // Immutable variable declaration: let x: Int = 5
   KwState,  // Mutable state declaration: state counter: Int = 0
+  KwDerive, // Variable whos value changes as other variables do
   KwFn,     // Function declaration: fn add(a: Int, b: Int) -> Int => a + b
   KwReturn, // Return statement inside a function block
   KwPrint,  // Built-in print statement/function: print(x)
@@ -35,6 +36,12 @@ enum class TokenType {
   KwInt64,
   KwFloat32,
   KwFloat64,
+  KwVoid,
+
+  // Pointers
+  KwPtr,
+  KwNull,
+  KwAlloc,
 
   // Boolean literal keywords.
   KwTrue,  // Boolean literal true

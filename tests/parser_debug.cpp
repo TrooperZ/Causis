@@ -135,6 +135,8 @@ int main(int argc, char *argv[]) {
   for (const auto &stmt : program) {
     if (dynamic_cast<causis::LetStmt *>(stmt.get())) {
       std::cout << "LetStmt\n";
+    } else if (dynamic_cast<causis::DeriveStmt *>(stmt.get())) {
+      std::cout << "DeriveStmt\n";
     } else if (dynamic_cast<causis::BlockStmt *>(stmt.get())) {
       std::cout << "BlockStmt\n";
     } else if (dynamic_cast<causis::FnStmt *>(stmt.get())) {
@@ -156,6 +158,12 @@ int main(int argc, char *argv[]) {
     if (auto *letStmt = dynamic_cast<causis::LetStmt *>(stmt.get())) {
       std::cout << "Let name=" << letStmt->name
                 << " mutable=" << letStmt->mutableState << "\n";
+    } else if (auto *deriveStmt =
+                   dynamic_cast<causis::DeriveStmt *>(stmt.get())) {
+      std::cout << "Derive name=" << deriveStmt->name
+                << " type=" << deriveStmt->typeName << "\n";
+      std::cout << "Expression tree:\n";
+      printExpr(deriveStmt->expression.get(), 2);
     } else if (auto *ifStmt = dynamic_cast<causis::IfStmt *>(stmt.get())) {
       std::cout << "IfStmt\n";
       std::cout << "Condition tree:\n";

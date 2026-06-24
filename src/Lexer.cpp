@@ -1,5 +1,5 @@
-#include "causis/Language.h"
 #include "causis/Lexer.h"
+#include "causis/Language.h"
 #include "causis/TokenType.h"
 #include <_ctype.h>
 #include <stdexcept>

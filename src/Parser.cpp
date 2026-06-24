@@ -53,13 +53,20 @@ const Token &Parser::consume(TokenType type, const std::string &message) {
 }
 
 std::string Parser::parseTypeName(const std::string &context) {
+  if (match({TokenType::KwPtr})) {
+    consume(TokenType::Less, "Expected '<' after ptr.");
+    std::string innerType = parseTypeName("inside ptr type");
+    consume(TokenType::Greater, "Expected '>' after pointer type.");
+    return "ptr<" + innerType + ">";
+  }
+
   if (!isTypeKeyword(peek().type)) {
     throw std::runtime_error("Expected type definition " + context +
                              ". Found: " + peek().lexeme);
   }
 
   const Token &type = advance();
-  return std::string(*typeNameForToken(type.type));
+  return type.lexeme;
 }
 
 std::vector<std::unique_ptr<Stmt>> Parser::parse() {
@@ -82,6 +89,10 @@ std::unique_ptr<Stmt> Parser::parseDeclaration() {
   if (match({TokenType::KwFn})) {
     return parseFnDeclaration();
   }
+  if (match({TokenType::KwDerive})) {
+    return parseDeriveDeclaration();
+  }
+
   return parseStatement();
 }
 
@@ -311,6 +322,11 @@ std::unique_ptr<Expr> Parser::parsePrimary() {
     return expr;
   }
 
+  if (match({TokenType::KwNull})) {
+    auto node = std::make_unique<NullExpr>();
+    return node;
+  }
+
   throw std::runtime_error("Expected expression");
 }
 
@@ -335,6 +351,27 @@ std::unique_ptr<Stmt> Parser::parseLetDeclaration(bool mutableState) {
   statement->typeName = typeName;
   statement->initializer = std::move(initializer);
   statement->mutableState = mutableState;
+
+  return statement;
+}
+
+std::unique_ptr<Stmt> Parser::parseDeriveDeclaration() {
+  const Token &name = consume(TokenType::Identifier,
+                              "Expected derived binding name.");
+
+  consume(TokenType::Colon, "Expected ':' after derived binding name.");
+  std::string typeName = parseTypeName("after ':'");
+
+  consume(TokenType::Equal, "Expected '=' after derived binding type.");
+
+  std::unique_ptr<Expr> expression = parseExpression();
+
+  consume(TokenType::Semicolon, "Expected ';' after derived declaration.");
+
+  auto statement = std::make_unique<DeriveStmt>();
+  statement->name = name.lexeme;
+  statement->typeName = typeName;
+  statement->expression = std::move(expression);
 
   return statement;
 }

@@ -68,6 +68,7 @@ private:
   std::unique_ptr<Stmt> parseForStatement();
   std::unique_ptr<Stmt> parseBreakStatement();
   std::unique_ptr<Stmt> parseContinueStatement();
+  std::unique_ptr<Stmt> parseDeriveDeclaration();
 
   std::unique_ptr<Expr> parseExpression();
   std::unique_ptr<Expr> parseLogicalOr();

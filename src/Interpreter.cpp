@@ -132,6 +132,21 @@ void Interpreter::execStmt(const Stmt &stmt) {
     return;
   }
 
+  if (auto s = dynamic_cast<const DeriveStmt *>(&stmt)) {
+    Binding b;
+    b.declaredType = s->typeName;
+    b.mutableState = false;
+    b.derived = true;
+    b.derivedExpr = s->expression.get();
+    b.derivedEnv = _env;
+
+    Value value = evalDerivedBinding(b);
+    b.value = value;
+
+    _env->define(s->name, b);
+    return;
+  }
+
   if (auto s = dynamic_cast<const FnStmt *>(&stmt)) {
     auto fn = std::make_shared<FunctionValue>();
     fn->params = s->params;
@@ -359,7 +374,10 @@ Value Interpreter::evalExpr(const Expr &expr) {
   }
 
   if (auto e = dynamic_cast<const IdentifierExpr *>(&expr)) {
-    const Binding &b = _env->get(e->name);
+    Binding &b = _env->get(e->name);
+    if (b.derived) {
+      return evalDerivedBinding(b);
+    }
     return b.value;
   }
 
@@ -461,9 +479,52 @@ Value Interpreter::evalExpr(const Expr &expr) {
   throw std::runtime_error("Unsupported expression type.");
 }
 
+Value Interpreter::evalDerivedBinding(Binding &binding) {
+  if (binding.derivedExpr == nullptr) {
+    throw std::runtime_error("Derived binding is missing an expression.");
+  }
+
+  if (binding.evaluating) {
+    throw std::runtime_error("Cycle detected in derived binding.");
+  }
+
+  binding.evaluating = true;
+  Environment *old = _env;
+  if (binding.derivedEnv != nullptr) {
+    _env = binding.derivedEnv;
+  }
+
+  try {
+    Value value = evalExpr(*binding.derivedExpr);
+    checkType(binding.declaredType, value);
+    binding.value = value;
+    binding.evaluating = false;
+    _env = old;
+    return value;
+  } catch (...) {
+    binding.evaluating = false;
+    _env = old;
+    throw;
+  }
+}
+
 void Interpreter::checkType(const std::string &declaredType,
                             const Value &value) {
   if (declaredType.empty()) {
+    return;
+  }
+
+  if (declaredType == "void") {
+    if (value.type != ValueType::Void) {
+      throw std::runtime_error("Type error: expected void.");
+    }
+    return;
+  }
+
+  if (declaredType.rfind("ptr<", 0) == 0) {
+    if (value.type != ValueType::Pointer) {
+      throw std::runtime_error("Type error: expected " + declaredType + ".");
+    }
     return;
   }
 

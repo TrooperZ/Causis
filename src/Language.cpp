@@ -1,6 +1,8 @@
 #include "causis/Language.h"
+#include "causis/TokenType.h"
 
 #include <array>
+#include <optional>
 
 namespace causis {
 
@@ -8,7 +10,7 @@ namespace {
 
 using KeywordEntry = std::pair<std::string_view, TokenType>;
 
-constexpr std::array<KeywordEntry, 27> kKeywords = {{
+constexpr std::array<KeywordEntry, 30> kKeywords = {{
     {"let", TokenType::KwLet},
     {"state", TokenType::KwState},
     {"fn", TokenType::KwFn},
@@ -35,12 +37,35 @@ constexpr std::array<KeywordEntry, 27> kKeywords = {{
     {"break", TokenType::KwBreak},
     {"continue", TokenType::KwContinue},
     {"cast_as", TokenType::KwCastAs},
+    {"ptr", TokenType::KwPtr},
+    {"null", TokenType::KwNull},
+    {"void", TokenType::KwVoid},
+    {"derive", TokenType::KwDerive},
+
+}};
+
+constexpr std::array<KeywordEntry, 13> kTypeKeywords = {{
+    {"bool", TokenType::KwBool},
+    {"string", TokenType::KwString},
+    {"uint8", TokenType::KwUint8},
+    {"int8", TokenType::KwInt8},
+    {"uint16", TokenType::KwUint16},
+    {"int16", TokenType::KwInt16},
+    {"uint32", TokenType::KwUint32},
+    {"int32", TokenType::KwInt32},
+    {"uint64", TokenType::KwUint64},
+    {"int64", TokenType::KwInt64},
+    {"float32", TokenType::KwFloat32},
+    {"float64", TokenType::KwFloat64},
+    {"void", TokenType::KwVoid},
 }};
 
 } // namespace
 
 std::optional<TokenType> lookupKeyword(std::string_view text) {
   for (const auto &[keyword, type] : kKeywords) {
+    // While a hash-map might give O(1) lookup time, a small enough static array
+    // is faster due to cache performance
     if (keyword == text) {
       return type;
     }
@@ -49,43 +74,24 @@ std::optional<TokenType> lookupKeyword(std::string_view text) {
   return std::nullopt;
 }
 
-bool isTypeKeyword(TokenType type) { return typeNameForToken(type).has_value(); }
+bool isTypeKeyword(TokenType type) {
+  return typeNameForToken(type).has_value();
+}
 
 std::optional<std::string_view> typeNameForToken(TokenType type) {
-  switch (type) {
-  case TokenType::KwString:
-    return "string";
-  case TokenType::KwBool:
-    return "bool";
-  case TokenType::KwUint8:
-    return "uint8";
-  case TokenType::KwInt8:
-    return "int8";
-  case TokenType::KwUint16:
-    return "uint16";
-  case TokenType::KwInt16:
-    return "int16";
-  case TokenType::KwUint32:
-    return "uint32";
-  case TokenType::KwInt32:
-    return "int32";
-  case TokenType::KwUint64:
-    return "uint64";
-  case TokenType::KwInt64:
-    return "int64";
-  case TokenType::KwFloat32:
-    return "float32";
-  case TokenType::KwFloat64:
-    return "float64";
-  default:
-    return std::nullopt;
+  for (const auto &[keyword, tokenType] : kTypeKeywords) {
+    if (tokenType == type) {
+      return keyword;
+    }
   }
+
+  return std::nullopt;
 }
 
 bool isIntegerTypeName(std::string_view typeName) {
   return typeName == "uint8" || typeName == "int8" || typeName == "uint16" ||
-         typeName == "int16" || typeName == "uint32" ||
-         typeName == "int32" || typeName == "uint64" || typeName == "int64";
+         typeName == "int16" || typeName == "uint32" || typeName == "int32" ||
+         typeName == "uint64" || typeName == "int64";
 }
 
 bool isFloatTypeName(std::string_view typeName) {
@@ -93,8 +99,13 @@ bool isFloatTypeName(std::string_view typeName) {
 }
 
 bool isSupportedTypeName(std::string_view typeName) {
-  return typeName == "string" || typeName == "bool" ||
-         isIntegerTypeName(typeName) || isFloatTypeName(typeName);
+  for (const auto &[keyword, _] : kTypeKeywords) {
+    if (keyword == typeName) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 } // namespace causis
