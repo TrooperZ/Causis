@@ -1,0 +1,4 @@
+state count: int32 = 1;
+derive doubled: int32 = count * 2;
+
+doubled = 10;

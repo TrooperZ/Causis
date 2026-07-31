@@ -1,0 +1,13 @@
+print("=== derive chain ===\n");
+
+state count: int32 = 2;
+derive doubled: int32 = count * 2;
+derive quadrupled: int32 = doubled * 2;
+
+print(quadrupled);
+print("\n");
+
+count = 4;
+
+print(quadrupled);
+print("\n");

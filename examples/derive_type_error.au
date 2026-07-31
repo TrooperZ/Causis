@@ -1,0 +1,5 @@
+state count: int32 = 1;
+derive label: string = count * 2;
+
+print(label);
+print("\n");

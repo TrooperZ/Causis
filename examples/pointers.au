@@ -1,0 +1,6 @@
+print("=== pointers ===\n");
+
+let p: ptr<int32> = null;
+
+print(p);
+print("\n");

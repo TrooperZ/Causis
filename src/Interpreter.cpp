@@ -169,12 +169,16 @@ void Interpreter::execStmt(const Stmt &stmt) {
   }
 
   if (auto s = dynamic_cast<const AssignStmt *>(&stmt)) {
-    Value value = evalExpr(*(s->value));
-    const Binding &b = _env->get(s->name);
-    checkType(b.declaredType, value);
-    if (!b.mutableState) {
-      throw std::runtime_error("Cannot assign to immutable binding");
+    Binding &b = _env->get(s->name);
+    if (b.derived) {
+      throw std::runtime_error("Cannot assign to derived binding: " + s->name);
     }
+    if (!b.mutableState) {
+      throw std::runtime_error("Cannot assign to immutable binding: " + s->name);
+    }
+
+    Value value = evalExpr(*(s->value));
+    checkType(b.declaredType, value);
     _env->assign(s->name, value);
     return;
   }
@@ -198,6 +202,15 @@ void Interpreter::execStmt(const Stmt &stmt) {
     case ValueType::Function:
       std::cout << "<function>";
       break;
+    case ValueType::Pointer: {
+      const auto &pointer = std::get<PointerValue>(value.data);
+      if (pointer.allocationId == 0) {
+        std::cout << "null";
+      } else {
+        std::cout << "<ptr<" << pointer.elementType << ">>";
+      }
+      break;
+    }
     case ValueType::Void:
       std::cout << "void";
       break;
@@ -371,6 +384,10 @@ Value Interpreter::evalExpr(const Expr &expr) {
 
   if (auto e = dynamic_cast<const BoolExpr *>(&expr)) {
     return Value(ValueType::Bool, e->boolean);
+  }
+
+  if (dynamic_cast<const NullExpr *>(&expr)) {
+    return Value(ValueType::Pointer, PointerValue{});
   }
 
   if (auto e = dynamic_cast<const IdentifierExpr *>(&expr)) {

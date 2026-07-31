@@ -4,7 +4,10 @@
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
+#include <stdexcept>
+#include <vector>
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
@@ -16,7 +19,8 @@ int main(int argc, char *argv[]) {
   std::ifstream ifs(argv[1]);
 
   if (!ifs.is_open()) {
-    return -1;
+    std::cerr << "Failed to open source file: " << argv[1] << "\n";
+    return 1;
   }
 
   std::string code;
@@ -25,9 +29,14 @@ int main(int argc, char *argv[]) {
   ifs.close();
   code = oss.str();
 
-  causis::Lexer lexer(code);
-
-  auto tokens = lexer.scanTokens();
+  std::vector<causis::Token> tokens;
+  try {
+    causis::Lexer lexer(code);
+    tokens = lexer.scanTokens();
+  } catch (const std::exception &ex) {
+    std::cerr << "Lex error: " << ex.what() << "\n";
+    return 1;
+  }
 
   std::vector<std::unique_ptr<causis::Stmt>> program;
   try {
@@ -39,6 +48,12 @@ int main(int argc, char *argv[]) {
   }
 
   causis::Interpreter interpreter;
-  interpreter.execute(program);
+  try {
+    interpreter.execute(program);
+  } catch (const std::exception &ex) {
+    std::cerr << "Runtime error: " << ex.what() << "\n";
+    return 1;
+  }
+
   return 0;
 }

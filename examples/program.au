@@ -138,7 +138,13 @@ let b: float64 = cast_as<float64>(x);
 print(a);
 print("\n");
 print(b);
+print("\n");
 
+print("=== derive ===\n");
+state deriveCount: int32 = 1;
+derive doubled: int32 = deriveCount * 2;
 
-print("=== pointers ===\n");
-let ptr1: ptr<int32> = 1;
+for (; deriveCount < 6; deriveCount = deriveCount + 1) {
+  print(doubled);
+  print("\n");
+}
