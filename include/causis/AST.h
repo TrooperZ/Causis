@@ -129,6 +129,11 @@ struct DeriveStmt : Stmt {
   std::unique_ptr<Expr> expression;
 };
 
+struct WhenStmt : Stmt {
+  std::unique_ptr<Expr> condition;
+  std::unique_ptr<BlockStmt> body;
+};
+
 struct BreakStmt : Stmt {};
 
 struct ContinueStmt : Stmt {};

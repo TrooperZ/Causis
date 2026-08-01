@@ -81,6 +81,7 @@ enum class TokenType {
   // Conditionals
   KwIf,   // If statement declaration
   KwElse, // Else declaration for if statements, can chain if, else if, else
+  KwWhen, // When clause for handling state change hooks
 
   // Loops
   KwFor,      // For loop declaration

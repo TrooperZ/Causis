@@ -1,207 +1,140 @@
-# Causis
-
 <div align="center">
+  <img src="assets/logos/Causis_Banner_Space_Grotesk_Medium_Rounded.png" alt="Causis — a reactive programming language" width="100%">
 
-**A small interpreted language for experimenting with typed state, control flow, and reactive language ideas.**
 
-[Getting started](#getting-started) | [Language snapshot](#language-snapshot) | [Project layout](#project-layout) | [Roadmap](#roadmap)
-
+  <p><strong>Explicit state. Reactive values. A readable runtime.</strong></p>
+  <p>C++20 · Recursive-descent parser · Tree-walk interpreter</p>
+  <p>
+    <a href="#quick-start">Quick start</a> ·
+    <a href="#language-snapshot">Language</a> ·
+    <a href="#how-it-works">Architecture</a> ·
+    <a href="#roadmap">Roadmap</a>
+  </p>
 </div>
 
-## What Is Causis?
+## Reactive by design
 
-Causis is a C++-built programming language project focused on growing a clean, understandable core before moving into its longer-term reactive ambitions.
+Causis makes the relationship between immutable values, mutable state, and computed state visible in the language:
 
-Today, the repository contains:
+```causis
+state count: int32 = 2;
+derive doubled: int32 = count * 2;
 
-- a lexer
-- a recursive-descent parser
-- a tree-walk interpreter
-- lexical block scoping
-- typed bindings with runtime checks
-- functions and basic control flow
+print(doubled); // 4
+count = 5;
+print(doubled); // 10
+```
 
-The current implementation is best thought of as an early language core, not a finished language product.
+`let` declares an immutable value, `state` declares mutable state, and `derive` declares a read-only value that is recomputed from its dependencies when read.
 
 ## Why Causis?
 
-The project explores a language model built around a few ideas:
+Causis explores reactive behavior without hiding mutation or control flow. Its implementation stays deliberately readable: a hand-written lexer tokenizes the source, a recursive-descent parser builds the AST, and a tree-walk interpreter executes it.
 
-- `let` for immutable bindings
-- `state` for explicit mutable state
-- approachable syntax with familiar control flow
-- incremental development toward richer reactive constructs
+The language currently includes:
 
-That means the README should describe the language as it exists now, while still making the direction clear: Causis is building toward reactivity on top of a simple executable core.
+- typed `let`, `state`, and `derive` bindings
+- lexical block scopes and runtime type checks
+- functions with typed parameters and return values
+- `if`, `else if`, `else`, `while`, and `for`
+- `break`, `continue`, and `return`
+- arithmetic, comparison, and boolean operators
+- numeric conversion with `cast_as<T>(value)`
+- experimental `ptr<T>` values with `null`
+- distinct lexer, parser, and runtime error reporting
 
-## Language Snapshot
+## Quick start
 
-The current language supports:
+### Requirements
 
-- immutable declarations with `let`
-- mutable declarations with `state`
-- optional declared types on bindings
-- integer, floating-point, string, and boolean literals
-- arithmetic: `+`, `-`, `*`, `/`
-- comparisons: `>`, `>=`, `<`, `<=`, `==`, `!=`
-- boolean logic: `&&`, `||`, `!`, `^`
-- reassignment with `=`
-- block scopes with `{ ... }`
-- functions with typed parameters and optional return types
-- `return`
-- `if`, `else if`, `else`
-- `while`
-- `for`
-- `break` and `continue`
-- `print(...)`
-
-Supported declared types currently include:
-
-- `bool`
-- `string`
-- `uint8`, `int8`
-- `uint16`, `int16`
-- `uint32`, `int32`
-- `uint64`, `int64`
-- `float32`, `float64`
-
-Type checks are enforced at runtime. Integer declarations also perform range checks for the smaller integer types currently modeled by the interpreter.
-
-## Example
-
-```causis
-let seed: int32 = 2;
-state total: int32 = 0;
-
-fn add(a: int32, b: int32) -> int32 {
-  return a + b;
-}
-
-for (state i: int32 = 0; i < 3; i = i + 1) {
-  total = total + i;
-}
-
-if (add(seed, total) > 4) {
-  print("ready\n");
-} else {
-  print("waiting\n");
-}
-```
-
-You can find a larger end-to-end example in [examples/program.au](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/examples/program.au).
-
-## Current Status
-
-Running the sample program today:
-
-```bash
-./build/causis examples/program.au
-```
-
-produces:
-
-```text
-=== logic ===
-true
-=== types ===
-255
--8
-65000
--1234
-42
-9000
-3.75
-typed values
-=== blocks ===
-5
-=== functions ===
-9
-4
-0
-=== if / else if / else ===
-200
-=== while ===
-0
-1
-2
-while total=3
-=== for ===
-0
-1
-2
-=== break / continue while ===
-1
-3
-=== break / continue for ===
-0
-2
-3
-```
-
-That sample exercises the main pieces of the language that are implemented in this repository right now.
-
-## Getting Started
-
-### Prerequisites
-
-- CMake 3.20 or newer
+- CMake 3.20+
 - A C++20-compatible compiler
 
-### Build
+### Build and run
 
 ```bash
 cmake -S . -B build
 cmake --build build
-```
-
-### Run Causis
-
-```bash
 ./build/causis examples/program.au
 ```
 
-### Run the Parser Debug Tool
+Run the focused reactive example:
+
+```bash
+./build/causis examples/derive.au
+```
+
+Expected output:
+
+```text
+=== derive ===
+2
+4
+6
+8
+10
+```
+
+## Language snapshot
+
+| Area | Status |
+| --- | --- |
+| Lexer, parser, and interpreter | Working |
+| Primitive types and runtime checking | Working |
+| Functions and control flow | Working |
+| Derived bindings | Working |
+| Chained derived bindings | Working |
+| Null pointer values | Experimental |
+| Allocation and dereference | Planned |
+| `when` reactions | Planned |
+
+Supported primitive types are `bool`, `string`, `uint8`–`uint64`, `int8`–`int64`, and `float32`–`float64`. Integer bindings enforce the range of their declared type at runtime.
+
+## How it works
+
+```text
+source file
+    ↓
+  lexer  →  tokens
+    ↓
+  parser →  abstract syntax tree
+    ↓
+interpreter → scoped runtime values
+```
+
+The implementation is split into a small set of components:
+
+- [`src/Lexer.cpp`](src/Lexer.cpp) tokenizes source code.
+- [`src/Parser.cpp`](src/Parser.cpp) builds the abstract syntax tree.
+- [`src/Interpreter.cpp`](src/Interpreter.cpp) executes programs and enforces runtime types.
+- [`include/causis/AST.h`](include/causis/AST.h) defines expressions and statements.
+- [`tests/parser_debug.cpp`](tests/parser_debug.cpp) provides a parser inspection utility.
+
+Build and run the inspection tool with:
 
 ```bash
 ./build/parser_debug examples/program.au
 ```
 
-`parser_debug` is a developer utility that prints lexer output, statement kinds, and expression tree information to help inspect parsing behavior.
+## Examples
 
-## Project Layout
-
-- [include/causis](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/include/causis) contains the language headers, AST definitions, runtime value model, and environment types.
-- [src/Lexer.cpp](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/src/Lexer.cpp) implements tokenization.
-- [src/Parser.cpp](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/src/Parser.cpp) implements recursive-descent parsing.
-- [src/Interpreter.cpp](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/src/Interpreter.cpp) executes the AST with runtime type checks and scoped environments.
-- [src/main.cpp](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/src/main.cpp) provides the CLI entrypoint.
-- [tests/parser_debug.cpp](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/tests/parser_debug.cpp) provides the parser inspection executable.
-- [examples](/Users/aminkaric/DevelopmentProjects/ProgrammingLanguage/Causis/examples) contains sample Causis programs.
-
-## What Is Not There Yet
-
-Causis is still in an early stage. Some important pieces are intentionally missing or incomplete:
-
-- no static type checker
-- no modules or imports
-- no user-defined data types
-- no collections or arrays
-- no closures beyond storing function environments for calls
-- no dedicated diagnostic system beyond thrown runtime and parse errors
-- no reactive `derive` or `when` model yet
+| Example | Demonstrates |
+| --- | --- |
+| [`program.au`](examples/program.au) | End-to-end language features |
+| [`derive.au`](examples/derive.au) | Reactive derived values |
+| [`derive_chain.au`](examples/derive_chain.au) | Chained derivation |
+| [`derive_assign_error.au`](examples/derive_assign_error.au) | Derived-binding immutability error |
+| [`derive_type_error.au`](examples/derive_type_error.au) | Derived-value type error |
+| [`pointers.au`](examples/pointers.au) | Experimental null pointer values |
 
 ## Roadmap
 
-Near-term work likely includes:
+- source-aware diagnostics
+- pointer allocation, dereference, and assignment
+- reactive `when` blocks
+- automated interpreter regression tests
+- collections and user-defined types
 
-- improving diagnostics and source-aware error reporting
-- expanding the value model and type system
-- adding richer expression and statement forms
-- introducing the first real reactive constructs
-- strengthening tests around parsing and interpretation
+## Project status
 
-## Design Direction
-
-The long-term goal for Causis is not just to be another small interpreter. The interesting part is the language direction: explicit state, predictable control flow, and eventually a stronger reactive model built on top of a readable core.
-
-For now, the emphasis is on making the implementation easy to reason about and extending it one solid piece at a time.
+Causis is under active development. The core interpreter and derived bindings are usable; pointer support and broader reactive features remain experimental.
