@@ -1,6 +1,6 @@
 <div align="center">
   <img src="assets/logos/Causis_Banner_Space_Grotesk_Medium_Rounded.png" alt="Causis — a reactive programming language" width="100%">
-
+  <img src="assets/logos/Causis_Latin_Etymology.png" alt="Latin etymology of Causis: dative or ablative plural of causa, meaning cause or reason" width="100%">
 
   <p><strong>Explicit state. Reactive values. A readable runtime.</strong></p>
   <p>C++20 · Recursive-descent parser · Tree-walk interpreter</p>
