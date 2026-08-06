@@ -1,0 +1,3 @@
+state value: int32 = 1;
+derive doubled: int32 = value * 2;
+doubled = 10;

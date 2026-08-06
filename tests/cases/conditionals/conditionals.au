@@ -1,0 +1,15 @@
+let value: int32 = 10;
+
+if (value > 10) {
+  print("high\n");
+} else if (value == 10) {
+  print("equal\n");
+} else {
+  print("low\n");
+}
+
+if (false) {
+  print("wrong\n");
+} else {
+  print("fallback\n");
+}

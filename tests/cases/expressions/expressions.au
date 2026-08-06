@@ -1,0 +1,18 @@
+print(1 + 2 * 3);
+print("\n");
+print((1 + 2) * 3);
+print("\n");
+print(-5 + 8);
+print("\n");
+print(7 / 2);
+print("\n");
+print(1.5 + 2);
+print("\n");
+print(3 < 4 && 4 <= 4);
+print("\n");
+print(3 == 3 ^ false);
+print("\n");
+print(false && missing);
+print("\n");
+print(true || missing);
+print("\n");

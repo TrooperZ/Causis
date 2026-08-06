@@ -1,0 +1,2 @@
+print("line one\nline two\n");
+print("quote=\" backslash=\\ tab=\tend\n");

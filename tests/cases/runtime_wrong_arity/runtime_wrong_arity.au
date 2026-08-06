@@ -1,0 +1,5 @@
+fn identity(value: int32) -> int32 {
+  return value;
+}
+
+print(identity());

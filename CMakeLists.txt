@@ -39,8 +39,25 @@ add_executable(causis
 
 target_link_libraries(causis PRIVATE causis_core)
 
-add_executable(parser_debug
-  tests/parser_debug.cpp
-)
+include(CTest)
 
-target_link_libraries(parser_debug PRIVATE causis_core)
+if(BUILD_TESTING)
+  file(
+    GLOB LANGUAGE_CASES
+    CONFIGURE_DEPENDS
+    "${PROJECT_SOURCE_DIR}/tests/cases/*/*.au"
+  )
+
+  foreach(CASE_FILE IN LISTS LANGUAGE_CASES)
+    get_filename_component(CASE_NAME "${CASE_FILE}" NAME_WE)
+
+    add_test(
+      NAME "language.${CASE_NAME}"
+      COMMAND
+        "${CMAKE_COMMAND}"
+        "-DCAUSIS=$<TARGET_FILE:causis>"
+        "-DSOURCE=${CASE_FILE}"
+        -P "${PROJECT_SOURCE_DIR}/tests/run_case.cmake"
+    )
+  endforeach()
+endif()
