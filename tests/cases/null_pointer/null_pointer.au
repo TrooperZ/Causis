@@ -1,0 +1,3 @@
+let pointer: ptr<int32> = null;
+print(pointer);
+print("\n");

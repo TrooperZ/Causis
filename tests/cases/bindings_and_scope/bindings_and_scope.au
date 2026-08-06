@@ -1,0 +1,18 @@
+let outer: int32 = 1;
+state count: int32 = 2;
+count = count + 3;
+
+{
+  let outer: int32 = 9;
+  state count: int32 = 4;
+  count = count + 1;
+  print(outer);
+  print("\n");
+  print(count);
+  print("\n");
+}
+
+print(outer);
+print("\n");
+print(count);
+print("\n");

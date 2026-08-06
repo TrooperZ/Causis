@@ -1,0 +1,15 @@
+state count: int32 = 2;
+derive doubled: int32 = count * 2;
+derive quadrupled: int32 = doubled * 2;
+
+print(doubled);
+print("\n");
+print(quadrupled);
+print("\n");
+
+count = 5;
+
+print(doubled);
+print("\n");
+print(quadrupled);
+print("\n");

@@ -1,0 +1,27 @@
+state total: int32 = 0;
+state i: int32 = 0;
+
+while (i < 5) {
+  i = i + 1;
+  if (i == 2) {
+    continue;
+  }
+  if (i == 5) {
+    break;
+  }
+  total = total + i;
+}
+
+print(total);
+print("\n");
+
+for (state j: int32 = 0; j < 5; j = j + 1) {
+  if (j == 1) {
+    continue;
+  }
+  if (j == 4) {
+    break;
+  }
+  print(j);
+  print("\n");
+}
