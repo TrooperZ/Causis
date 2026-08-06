@@ -2,13 +2,7 @@
   <img src="assets/logos/Causis_Banner_Space_Grotesk_Medium_Rounded.png" alt="Causis — a reactive programming language" width="100%">
 </div>
 
----
-
-## [**causīs**](https://en.wiktionary.org/wiki/causis)
- Noun (Latin)
-1. *Dative/ablative feminine plural of* **causa** (“cause, reason”)
-
----
+> ***[causīs](https://en.wiktionary.org/wiki/causis)*** - Noun, Latin, dative/ablative plural of *causa*: “cause, reason.”
 
 <div align="center">
 
