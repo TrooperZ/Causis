@@ -1,5 +1,6 @@
 #include "causis/Parser.h"
 #include "causis/AST.h"
+#include "causis/Errors.h"
 #include "causis/Language.h"
 #include "causis/Token.h"
 #include "causis/TokenType.h"
@@ -14,7 +15,7 @@ namespace causis {
 
 const Token &Parser::previous() const {
   if (_current == 0) {
-    throw std::runtime_error("previous() called before advancing.");
+    throw std::logic_error("previous() called before advancing.");
   }
   return _tokens[_current - 1];
 }
@@ -48,8 +49,11 @@ const Token &Parser::consume(TokenType type, const std::string &message) {
   if (check(type)) {
     return advance();
   }
+  const Token &t = peek();
+  const std::string found =
+      t.type == TokenType::EndOfFile ? "end of file" : t.lexeme;
 
-  throw std::runtime_error(message + " Found: " + peek().lexeme);
+  throw SourceError(t.line, t.column, message + " Found: " + found);
 }
 
 std::string Parser::parseTypeName(const std::string &context) {
@@ -61,8 +65,12 @@ std::string Parser::parseTypeName(const std::string &context) {
   }
 
   if (!isTypeKeyword(peek().type)) {
-    throw std::runtime_error("Expected type definition " + context +
-                             ". Found: " + peek().lexeme);
+    const Token &t = peek();
+    const std::string found =
+        t.type == TokenType::EndOfFile ? "end of file" : t.lexeme;
+    throw SourceError(t.line, t.column,
+                      "Expected type definition " + context +
+                          ". Found: " + found);
   }
 
   const Token &type = advance();
@@ -263,12 +271,14 @@ std::unique_ptr<Expr> Parser::parseCall() {
   std::unique_ptr<Expr> expr = parsePrimary();
 
   while (match({TokenType::LParen})) {
+    const Token &openParen = previous();
     std::vector<std::unique_ptr<Expr>> args = parseArguments();
     consume(TokenType::RParen, "Expected ')' after arguments.");
 
     auto *callee = dynamic_cast<IdentifierExpr *>(expr.get());
     if (callee == nullptr) {
-      throw std::runtime_error("Can only call named functions.");
+      throw SourceError(openParen.line, openParen.column,
+                        "Can only call named functions.");
     }
 
     auto node = std::make_unique<CallExpr>();
@@ -281,14 +291,26 @@ std::unique_ptr<Expr> Parser::parseCall() {
 
 std::unique_ptr<Expr> Parser::parsePrimary() {
   if (match({TokenType::IntLiteral})) {
+    const Token &literal = previous();
     auto node = std::make_unique<IntExpr>();
-    node->value = std::stoi(previous().lexeme);
+    try {
+      node->value = std::stoi(literal.lexeme);
+    } catch (const std::out_of_range &) {
+      throw SourceError(literal.line, literal.column,
+                        "Integer literal out of range.");
+    }
     return node;
   }
 
   if (match({TokenType::FloatLiteral})) {
+    const Token &literal = previous();
     auto node = std::make_unique<FloatExpr>();
-    node->value = std::stod(previous().lexeme);
+    try {
+      node->value = std::stod(literal.lexeme);
+    } catch (const std::out_of_range &) {
+      throw SourceError(literal.line, literal.column,
+                        "Float literal out of range.");
+    }
     return node;
   }
 
@@ -327,7 +349,8 @@ std::unique_ptr<Expr> Parser::parsePrimary() {
     return node;
   }
 
-  throw std::runtime_error("Expected expression");
+  const Token &t = peek();
+  throw SourceError(t.line, t.column, "Expected expression");
 }
 
 std::unique_ptr<Stmt> Parser::parseLetDeclaration(bool mutableState) {
@@ -356,8 +379,8 @@ std::unique_ptr<Stmt> Parser::parseLetDeclaration(bool mutableState) {
 }
 
 std::unique_ptr<Stmt> Parser::parseDeriveDeclaration() {
-  const Token &name = consume(TokenType::Identifier,
-                              "Expected derived binding name.");
+  const Token &name =
+      consume(TokenType::Identifier, "Expected derived binding name.");
 
   consume(TokenType::Colon, "Expected ':' after derived binding name.");
   std::string typeName = parseTypeName("after ':'");

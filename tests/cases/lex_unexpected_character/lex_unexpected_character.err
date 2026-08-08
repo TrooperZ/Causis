@@ -1,1 +1,7 @@
-Lex error: Unexpected character
+
+================================================================================
+error[lex]: Unexpected character
+ --> lex_unexpected_character.au:1:1
+  |
+1 | @
+  | ^

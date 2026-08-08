@@ -1,10 +1,23 @@
 #include "causis/Lexer.h"
+#include "causis/Errors.h"
 #include "causis/Language.h"
 #include "causis/TokenType.h"
 #include <_ctype.h>
-#include <stdexcept>
 
 namespace causis {
+
+char Lexer::advance() {
+  const char c = _source[_current++];
+
+  if (c == '\n') {
+    _column = 1;
+    ++_line;
+  } else {
+    ++_column;
+  }
+
+  return c;
+}
 
 bool Lexer::match(char expected) {
   if (isAtEnd()) {
@@ -13,7 +26,7 @@ bool Lexer::match(char expected) {
   if (_source[_current] != expected) {
     return false;
   }
-  _current++;
+  advance();
   return true;
 }
 
@@ -23,6 +36,9 @@ void Lexer::scanToken() {
   }
 
   _start = _current;
+  _startLine = _line;
+  _startColumn = _column;
+
   char c = advance();
 
   switch (c) {
@@ -83,7 +99,7 @@ void Lexer::scanToken() {
     if (match('&')) {
       addToken(TokenType::AndAnd);
     } else {
-      throw std::runtime_error("Unexpected character");
+      throw SourceError(_startLine, _startColumn, "Unexpected character");
     }
     break;
 
@@ -91,7 +107,7 @@ void Lexer::scanToken() {
     if (match('|')) {
       addToken(TokenType::OrOr);
     } else {
-      throw std::runtime_error("Unexpected character");
+      throw SourceError(_startLine, _startColumn, "Unexpected character");
     }
     break;
 
@@ -133,11 +149,8 @@ void Lexer::scanToken() {
   case ' ':
   case '\r':
   case '\t':
-    // ignore
-    break;
-
   case '\n':
-    ++_line; // new line
+    // ignore
     break;
 
   /* Literals */
@@ -151,7 +164,7 @@ void Lexer::scanToken() {
     } else if (isalpha(c)) {
       scanIdentifier();
     } else {
-      throw std::runtime_error("Unexpected character");
+      throw SourceError(_startLine, _startColumn, "Unexpected character");
     }
   }
 }
@@ -160,13 +173,17 @@ void Lexer::scanString() {
   std::string value;
 
   while (!isAtEnd() && peek() != '"') {
-    if (peek() == '\n') {
-      _line++;
-    }
+    if (peek() == '\\') {
+      const std::size_t escapeLine = _line;
+      const std::size_t escapeColumn = _column;
+      advance(); // consume backslash
 
-    if (peek() == '\\' && !isAtEnd()) {
-      advance();          // consume backslash
-      char c = advance(); // escaped char
+      if (isAtEnd()) {
+        throw SourceError(_startLine, _startColumn,
+                          "Unterminated string literal");
+      }
+
+      const char c = advance(); // escaped char
       switch (c) {
       case '\"':
         value.push_back('\"');
@@ -185,20 +202,16 @@ void Lexer::scanString() {
         break;
 
       default:
-        throw std::runtime_error("Unknown escape sequence: \\" +
-                                 std::string(1, c));
+        throw SourceError(escapeLine, escapeColumn,
+                          "Unknown escape sequence: \\" + std::string(1, c));
       }
     } else {
       value.push_back(advance()); // consume as normal
     }
-
-    if (isAtEnd()) {
-      throw std::runtime_error("Unterminated string literal");
-    }
   }
 
   if (isAtEnd()) {
-    throw std::runtime_error("Unterminated string literal");
+    throw SourceError(_startLine, _startColumn, "Unterminated string literal");
   }
 
   advance(); // consume closing quote
@@ -234,19 +247,18 @@ void Lexer::scanIdentifier() {
   std::string text = _source.substr(_start, _current - _start);
 
   if (const auto keyword = lookupKeyword(text); keyword.has_value()) {
-    addToken(*keyword);
+    addToken(*keyword, text);
   } else {
-    addToken(TokenType::Identifier);
+    addToken(TokenType::Identifier, text);
   }
 }
 
 std::vector<Token> Lexer::scanTokens() {
   while (!isAtEnd()) {
-    _start = _current;
     scanToken();
   }
 
-  addToken(TokenType::EndOfFile, "");
+  _tokens.push_back({TokenType::EndOfFile, "", _line, _column});
   return _tokens;
 }
 

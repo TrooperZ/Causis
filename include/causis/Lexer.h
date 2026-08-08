@@ -19,11 +19,15 @@ private:
   std::vector<Token> _tokens;
   std::size_t _start = 0;
   std::size_t _current = 0;
-  int _line = 1;
+
+  std::size_t _line = 1;
+  std::size_t _column = 1;
+  std::size_t _startLine = 1;
+  std::size_t _startColumn = 1;
 
   inline bool isAtEnd() const { return _current >= _source.size(); }
-  inline char advance() { return _source[_current++]; }
 
+  char advance();
   bool match(char expected);
 
   inline char peek() const { return isAtEnd() ? '\0' : _source[_current]; }
@@ -36,12 +40,11 @@ private:
   void scanNumber();
   void scanIdentifier();
 
-  inline void addToken(TokenType type) {
-    _tokens.emplace_back(type, _source.substr(_start, _current - _start),
-                         _line);
-  }
   inline void addToken(TokenType type, const std::string &lexeme) {
-    _tokens.emplace_back(type, lexeme, _line);
+    _tokens.push_back({type, lexeme, _startLine, _startColumn});
+  }
+  inline void addToken(TokenType type) {
+    addToken(type, _source.substr(_start, _current - _start));
   }
 };
 
