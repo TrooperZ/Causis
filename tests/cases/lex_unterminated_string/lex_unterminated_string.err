@@ -1,1 +1,7 @@
-Lex error: Unterminated string literal
+
+================================================================================
+error[lex]: Unterminated string literal
+ --> lex_unterminated_string.au:1:7
+  |
+1 | print("unterminated);
+  |       ^

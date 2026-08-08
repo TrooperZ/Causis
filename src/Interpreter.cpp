@@ -174,7 +174,8 @@ void Interpreter::execStmt(const Stmt &stmt) {
       throw std::runtime_error("Cannot assign to derived binding: " + s->name);
     }
     if (!b.mutableState) {
-      throw std::runtime_error("Cannot assign to immutable binding: " + s->name);
+      throw std::runtime_error("Cannot assign to immutable binding: " +
+                               s->name);
     }
 
     Value value = evalExpr(*(s->value));

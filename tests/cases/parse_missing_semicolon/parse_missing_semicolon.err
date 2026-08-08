@@ -1,1 +1,7 @@
-Parse error: Expected ';' after declaration. Found: print
+
+================================================================================
+error[parse]: Expected ';' after declaration. Found: print
+ --> parse_missing_semicolon.au:2:1
+  |
+2 | print(value);
+  | ^

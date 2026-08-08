@@ -1,7 +1,9 @@
+#include "causis/Errors.h"
 #include "causis/Interpreter.h"
 #include "causis/Lexer.h"
 #include "causis/Parser.h"
 
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -33,6 +35,9 @@ int main(int argc, char *argv[]) {
   try {
     causis::Lexer lexer(code);
     tokens = lexer.scanTokens();
+  } catch (const causis::SourceError &ex) {
+    causis::printSourceError("lex", argv[1], code, ex);
+    return 1;
   } catch (const std::exception &ex) {
     std::cerr << "Lex error: " << ex.what() << "\n";
     return 1;
@@ -42,6 +47,9 @@ int main(int argc, char *argv[]) {
   try {
     causis::Parser parser(tokens);
     program = parser.parse();
+  } catch (const causis::SourceError &ex) {
+    causis::printSourceError("parse", argv[1], code, ex);
+    return 1;
   } catch (const std::exception &ex) {
     std::cerr << "Parse error: " << ex.what() << "\n";
     return 1;

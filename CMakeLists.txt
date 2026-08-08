@@ -12,6 +12,7 @@ endif()
 
 
 add_library(causis_core SHARED
+  src/Errors.cpp
   src/Language.cpp
   src/Lexer.cpp
   src/Parser.cpp
@@ -42,6 +43,18 @@ target_link_libraries(causis PRIVATE causis_core)
 include(CTest)
 
 if(BUILD_TESTING)
+  add_executable(error_formatter tests/error_formatter.cpp)
+  target_link_libraries(error_formatter PRIVATE causis_core)
+  add_test(NAME error.formatter COMMAND error_formatter)
+
+  add_executable(lexer_positions tests/lexer_positions.cpp)
+  target_link_libraries(lexer_positions PRIVATE causis_core)
+  add_test(NAME lexer.positions COMMAND lexer_positions)
+
+  add_executable(parser_errors tests/parser_errors.cpp)
+  target_link_libraries(parser_errors PRIVATE causis_core)
+  add_test(NAME parser.errors COMMAND parser_errors)
+
   file(
     GLOB LANGUAGE_CASES
     CONFIGURE_DEPENDS
