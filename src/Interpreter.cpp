@@ -180,7 +180,7 @@ void Interpreter::execStmt(const Stmt &stmt) {
 
     Value value = evalExpr(*(s->value));
     checkType(b.declaredType, value);
-    _env->assign(s->name, value);
+    b.value = value;
     return;
   }
 

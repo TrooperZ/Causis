@@ -19,20 +19,11 @@ add_library(causis_core SHARED
   src/Interpreter.cpp
 )
 
-# Tell the compiler where to find headers when building causis_core
 target_include_directories(
   causis_core
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}/include
-)
-
-# Keep the interface include for consumers of causis_core (optional)
-target_include_directories(
-  causis_core
-  INTERFACE
+  PUBLIC
     ${PROJECT_SOURCE_DIR}/include
 )
-
 
 add_executable(causis
   src/main.cpp

@@ -30,11 +30,6 @@ public:
     throw std::runtime_error("Unknown binding: " + name);
   }
 
-  void assign(const std::string &name, const Value &value) {
-    Binding &binding = get(name);
-    binding.value = value;
-  }
-
 private:
   std::unordered_map<std::string, Binding> _values;
   Environment *_parent = nullptr;
