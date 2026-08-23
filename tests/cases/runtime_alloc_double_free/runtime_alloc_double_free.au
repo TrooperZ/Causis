@@ -1,0 +1,3 @@
+let value: ptr<int32> = alloc<int32>(42);
+free(value);
+free(value);

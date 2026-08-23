@@ -349,6 +349,10 @@ std::unique_ptr<Expr> Parser::parsePrimary() {
     return node;
   }
 
+  if (match({TokenType::KwAlloc})) {
+    return parseAllocExpression();
+  }
+
   const Token &t = peek();
   throw SourceError(t.line, t.column, "Expected expression");
 }
@@ -584,12 +588,37 @@ std::unique_ptr<Stmt> Parser::parseContinueStatement() {
   return std::make_unique<ContinueStmt>();
 }
 
+std::unique_ptr<Expr> Parser::parseAllocExpression() {
+  consume(TokenType::Less, "Expected '<' after alloc.");
+  std::string elementType = parseTypeName("inside alloc");
+  consume(TokenType::Greater, "Expected '>' after allocation type.");
+  consume(TokenType::LParen, "Expected '(' after allocation type.");
+
+  // Count is mandatory, default value is not
+  auto count = parseExpression();
+
+  std::unique_ptr<Expr> fill;
+  if (match({TokenType::Comma})) {
+    fill = parseExpression();
+  }
+
+  consume(TokenType::RParen, "Expected ')' after allocation arguments.");
+
+  auto expression = std::make_unique<AllocExpr>();
+  expression->elementType = std::move(elementType);
+  expression->count = std::move(count); // Prefer renaming this field to count.
+  expression->fill = std::move(fill);
+  return expression;
+}
+
 std::unique_ptr<Expr> Parser::parseCastExpression() {
   consume(TokenType::Less, "Expected '<' after cast.");
   std::string targetType = parseTypeName("inside cast");
   consume(TokenType::Greater, "Expected '>' after cast type.");
   consume(TokenType::LParen, "Expected '(' after cast type.");
+
   auto value = parseExpression();
+
   consume(TokenType::RParen, "Expected ')' after cast value.");
 
   auto expr = std::make_unique<CastExpr>();

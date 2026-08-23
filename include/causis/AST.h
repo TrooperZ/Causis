@@ -111,7 +111,8 @@ struct NullExpr : Expr {};
 
 struct AllocExpr : Expr {
   std::string elementType;
-  std::unique_ptr<Expr> initializer;
+  std::unique_ptr<Expr> count;
+  std::unique_ptr<Expr> fill; // nullptr means no fill value specified
 };
 
 struct DerefExpr : Expr {
