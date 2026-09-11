@@ -6,6 +6,8 @@
 #include "causis/TokenType.h"
 
 #include <iostream>
+#include <cmath>
+#include <cstdint>
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -17,6 +19,8 @@ namespace {
 bool isIntegerValue(const Value &value) { return value.type == ValueType::Int; }
 
 bool isFloatValue(const Value &value) { return value.type == ValueType::Float; }
+
+bool isRationalValue(const Value &value) { return value.type == ValueType::Rational; }
 
 bool isNumericValue(const Value &value) {
   return isIntegerValue(value) || isFloatValue(value);
@@ -96,6 +100,38 @@ Value numericBinaryResult(const Value &left, const Value &right,
   }
 
   throw std::runtime_error("Unsupported numeric operator.");
+}
+
+int decimalPlaces(double value) {
+  value = std::abs(value);
+  for (int places = 0; places <= 15; ++places) {
+    const double factor = std::pow(10.0, places);
+    const double scaled = value * factor;
+    if (std::abs(scaled - std::round(scaled)) < 1e-9) {
+      return places;
+    }
+  }
+  throw std::runtime_error("Float has too many decimal places for rational.");
+}
+
+std::int64_t rationalOperand(const Value &value, int decimalScale) {
+  if (value.type == ValueType::Int) {
+    const auto integer = static_cast<std::int64_t>(std::get<int>(value.data));
+    return integer * static_cast<std::int64_t>(std::pow(10.0, decimalScale));
+  }
+
+  if (value.type == ValueType::Float) {
+    const double scaled = std::get<double>(value.data) *
+                          std::pow(10.0, decimalScale);
+    const double rounded = std::round(scaled);
+    if (rounded < std::numeric_limits<std::int64_t>::min() ||
+        rounded > std::numeric_limits<std::int64_t>::max()) {
+      throw std::runtime_error("Rational operand is out of range.");
+    }
+    return static_cast<std::int64_t>(rounded);
+  }
+
+  throw std::runtime_error("Rational operands must be numeric.");
 }
 
 } // namespace
@@ -215,6 +251,11 @@ void Interpreter::execStmt(const Stmt &stmt) {
     case ValueType::Void:
       std::cout << "void";
       break;
+    case ValueType::Rational: {
+      const auto &rational = std::get<RationalValue>(value.data);
+      std::cout << rational.numerator << "/" << rational.denominator;
+      break;
+    }
     }
 
     return;
@@ -494,6 +535,35 @@ Value Interpreter::evalExpr(const Expr &expr) {
     }
   }
 
+  if (auto e = dynamic_cast<const RationalExpr *>(&expr)) {
+    Value numeratorValue = evalExpr(*e->numerator);
+    Value denominatorValue = evalExpr(*e->denominator);
+
+    if (!isNumericValue(numeratorValue) ||
+      !isNumericValue(denominatorValue)) {
+      throw std::runtime_error("Rational operands must be numeric.");
+    }
+
+    // choose between length of num decimals and den decimals
+    int decimalScale = 0;
+    if (numeratorValue.type == ValueType::Float) {
+      decimalScale = std::max(decimalScale, decimalPlaces(std::get<double>(numeratorValue.data)));
+    }
+    if (denominatorValue.type == ValueType::Float) {
+      decimalScale = std::max(decimalScale, decimalPlaces(std::get<double>(denominatorValue.data)));
+    }
+
+    // convert both to 
+    const auto numeratorNumber = rationalOperand(numeratorValue, decimalScale);
+    const auto denominatorNumber = rationalOperand(denominatorValue, decimalScale);
+
+    if (denominatorNumber == 0) {
+      throw std::runtime_error("Rational denominator cannot be zero.");
+    }
+
+    RationalValue rational{numeratorNumber, denominatorNumber};
+    return Value(ValueType::Rational, rational);
+  }
   throw std::runtime_error("Unsupported expression type.");
 }
 
@@ -599,6 +669,14 @@ void Interpreter::checkType(const std::string &declaredType,
     }
     if (declaredType == "uint64" && numericValue < 0) {
       throw std::runtime_error("Type error: value out of range for uint64.");
+    }
+    return;
+  }
+
+  // add rational math helpers, add rational handling to the expression evaluator
+  if (declaredType == "rational") {
+    if (value.type != ValueType::Rational) {
+      throw std::runtime_error("Type error: expected rational.");
     }
     return;
   }

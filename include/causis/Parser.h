@@ -70,7 +70,7 @@ private:
   std::unique_ptr<Stmt> parseContinueStatement();
   std::unique_ptr<Stmt> parseDeriveDeclaration();
   std::unique_ptr<Stmt> parseWhenStatement();
-
+  
   std::unique_ptr<Expr> parseExpression();
   std::unique_ptr<Expr> parseLogicalOr();
   std::unique_ptr<Expr> parseLogicalXor();
@@ -83,6 +83,7 @@ private:
   std::unique_ptr<Expr> parseCall();
   std::unique_ptr<Expr> parsePrimary();
   std::unique_ptr<Expr> parseCastExpression();
+  std::unique_ptr<Expr> parseRational();
 
   std::vector<std::unique_ptr<Expr>> parseArguments();
 };

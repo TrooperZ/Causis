@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <cstdint>
 #include <string>
 #include <utility>
 #include <variant>
@@ -16,7 +17,7 @@ struct PointerValue {
   std::string elementType;
 };
 
-enum class ValueType { Int, Float, String, Bool, Function, Void, Pointer };
+enum class ValueType { Int, Float, String, Bool, Function, Void, Pointer, Rational};
 
 struct FunctionValue {
   std::vector<std::pair<std::string, std::string>> params;
@@ -25,10 +26,15 @@ struct FunctionValue {
   Environment *closure = nullptr;
 };
 
+struct RationalValue{
+  std::int64_t numerator = 0;
+  std::int64_t denominator = 1;
+};
+
 struct Value {
   using Storage = std::variant<int, double, std::string, bool,
                                std::shared_ptr<FunctionValue>, PointerValue,
-                               std::monostate>;
+                               RationalValue, std::monostate>;
 
   ValueType type = ValueType::Void;
   Storage data = std::monostate{};
@@ -46,5 +52,6 @@ struct HeapAllocation {
   Value value;
   bool alive = true;
 };
+
 
 } // namespace causis

@@ -37,6 +37,7 @@ enum class TokenType {
   KwFloat32,
   KwFloat64,
   KwVoid,
+  KwRational,
 
   // Pointers
   KwPtr,

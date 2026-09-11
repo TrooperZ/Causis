@@ -54,6 +54,11 @@ struct CastExpr : Expr {
   std::unique_ptr<Expr> value;
 };
 
+struct RationalExpr : Expr {
+  std::unique_ptr<Expr> numerator;
+  std::unique_ptr<Expr> denominator;
+};
+
 struct Stmt {
   virtual ~Stmt() = default;
 };

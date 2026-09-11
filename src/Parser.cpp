@@ -349,6 +349,10 @@ std::unique_ptr<Expr> Parser::parsePrimary() {
     return node;
   }
 
+  if (match({TokenType::KwRational})) {
+    return parseRational();
+  }
+
   const Token &t = peek();
   throw SourceError(t.line, t.column, "Expected expression");
 }
@@ -598,4 +602,16 @@ std::unique_ptr<Expr> Parser::parseCastExpression() {
   return expr;
 }
 
+std::unique_ptr<Expr> Parser::parseRational() {
+  consume(TokenType::LParen, "Expected '(' after rational");
+  auto numerator = parseExpression();
+  consume(TokenType::Comma, "Expected ',' after numerator value");
+  auto denominator = parseExpression();
+  consume(TokenType::RParen, "Expected ')' after denominator value");
+  
+  auto rational = std::make_unique<RationalExpr>();
+  rational->numerator = std::move(numerator);
+  rational->denominator = std::move(denominator);
+  return rational;
+}
 } // namespace causis
