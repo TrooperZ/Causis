@@ -673,7 +673,6 @@ void Interpreter::checkType(const std::string &declaredType,
     return;
   }
 
-  // add rational math helpers, add rational handling to the expression evaluator
   if (declaredType == "rational") {
     if (value.type != ValueType::Rational) {
       throw std::runtime_error("Type error: expected rational.");
