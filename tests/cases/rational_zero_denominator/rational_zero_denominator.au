@@ -1,0 +1,1 @@
+let invalid: rational = rational(1, 0);

@@ -10,7 +10,7 @@ namespace {
 
 using KeywordEntry = std::pair<std::string_view, TokenType>;
 
-constexpr std::array<KeywordEntry, 31> kKeywords = {{
+constexpr std::array<KeywordEntry, 32> kKeywords = {{
     {"let", TokenType::KwLet},
     {"state", TokenType::KwState},
     {"fn", TokenType::KwFn},
@@ -42,10 +42,10 @@ constexpr std::array<KeywordEntry, 31> kKeywords = {{
     {"void", TokenType::KwVoid},
     {"derive", TokenType::KwDerive},
     {"when", TokenType::KwWhen},
-
+    {"rational", TokenType::KwRational},
 }};
 
-constexpr std::array<KeywordEntry, 13> kTypeKeywords = {{
+constexpr std::array<KeywordEntry, 14> kTypeKeywords = {{
     {"bool", TokenType::KwBool},
     {"string", TokenType::KwString},
     {"uint8", TokenType::KwUint8},
@@ -59,6 +59,7 @@ constexpr std::array<KeywordEntry, 13> kTypeKeywords = {{
     {"float32", TokenType::KwFloat32},
     {"float64", TokenType::KwFloat64},
     {"void", TokenType::KwVoid},
+    {"rational", TokenType::KwRational}
 }};
 
 } // namespace
@@ -90,13 +91,18 @@ std::optional<std::string_view> typeNameForToken(TokenType type) {
 }
 
 bool isIntegerTypeName(std::string_view typeName) {
-  return typeName == "uint8" || typeName == "int8" || typeName == "uint16" ||
-         typeName == "int16" || typeName == "uint32" || typeName == "int32" ||
-         typeName == "uint64" || typeName == "int64";
+  return typeName == "uint8"  || typeName == "int8"  || 
+         typeName == "uint16" || typeName == "int16" || 
+         typeName == "uint32" || typeName == "int32" ||
+         typeName == "uint64" || typeName == "int64" ;
 }
 
 bool isFloatTypeName(std::string_view typeName) {
   return typeName == "float32" || typeName == "float64";
+}
+
+bool isRationalTypeName(std::string_view typeName) {
+  return typeName == "rational";
 }
 
 bool isSupportedTypeName(std::string_view typeName) {

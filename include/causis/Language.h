@@ -14,6 +14,7 @@ std::optional<std::string_view> typeNameForToken(TokenType type);
 
 bool isIntegerTypeName(std::string_view typeName);
 bool isFloatTypeName(std::string_view typeName);
+bool isRationalTypeName(std::string_view typeName);
 bool isSupportedTypeName(std::string_view typeName);
 
 } // namespace causis
