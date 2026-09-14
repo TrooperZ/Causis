@@ -253,7 +253,7 @@ void Interpreter::execStmt(const Stmt &stmt) {
       break;
     case ValueType::Rational: {
       const auto &rational = std::get<RationalValue>(value.data);
-      std::cout << rational.numerator << "/" << rational.denominator;
+      std::cout << "Rational(" << rational.numerator << "," << rational.denominator << ")";
       break;
     }
     }
