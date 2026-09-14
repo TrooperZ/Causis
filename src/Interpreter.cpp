@@ -5,6 +5,7 @@
 #include "causis/Language.h"
 #include "causis/TokenType.h"
 
+#include <cstdint>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -26,7 +27,7 @@ double toDouble(const Value &value) {
   if (value.type == ValueType::Float) {
     return std::get<double>(value.data);
   }
-  return static_cast<double>(std::get<int>(value.data));
+  return static_cast<double>(std::get<std::int32_t>(value.data));
 }
 
 Value numericBinaryResult(const Value &left, const Value &right,
@@ -67,8 +68,8 @@ Value numericBinaryResult(const Value &left, const Value &right,
     }
   }
 
-  const int lhs = std::get<int>(left.data);
-  const int rhs = std::get<int>(right.data);
+  const std::int32_t lhs = std::get<std::int32_t>(left.data);
+  const std::int32_t rhs = std::get<std::int32_t>(right.data);
 
   switch (operation) {
   case TokenType::Plus:
@@ -189,7 +190,7 @@ void Interpreter::execStmt(const Stmt &stmt) {
 
     switch (value.type) {
     case ValueType::Int:
-      std::cout << std::get<int>(value.data);
+      std::cout << std::get<std::int32_t>(value.data);
       break;
     case ValueType::Float:
       std::cout << std::get<double>(value.data);
@@ -403,7 +404,7 @@ Value Interpreter::evalExpr(const Expr &expr) {
     Value right = evalExpr(*(e->operand));
     if (e->op == TokenType::Minus) {
       if (right.type == ValueType::Int) {
-        return Value(ValueType::Int, -std::get<int>(right.data));
+        return Value(ValueType::Int, -std::get<std::int32_t>(right.data));
       }
       if (right.type == ValueType::Float) {
         return Value(ValueType::Float, -std::get<double>(right.data));
@@ -572,26 +573,26 @@ void Interpreter::checkType(const std::string &declaredType,
       throw std::runtime_error("Type error: expected " + declaredType + ".");
     }
 
-    const int numericValue = std::get<int>(value.data);
+    const std::int32_t numericValue = std::get<std::int32_t>(value.data);
 
     if (declaredType == "uint8" &&
         (numericValue < 0 ||
-         numericValue > std::numeric_limits<unsigned char>::max())) {
+         numericValue > std::numeric_limits<std::uint8_t>::max())) {
       throw std::runtime_error("Type error: value out of range for uint8.");
     }
     if (declaredType == "int8" &&
-        (numericValue < std::numeric_limits<signed char>::min() ||
-         numericValue > std::numeric_limits<signed char>::max())) {
+        (numericValue < std::numeric_limits<std::int8_t>::min() ||
+         numericValue > std::numeric_limits<std::int8_t>::max())) {
       throw std::runtime_error("Type error: value out of range for int8.");
     }
     if (declaredType == "uint16" &&
         (numericValue < 0 ||
-         numericValue > std::numeric_limits<unsigned short>::max())) {
+         numericValue > std::numeric_limits<std::uint16_t>::max())) {
       throw std::runtime_error("Type error: value out of range for uint16.");
     }
     if (declaredType == "int16" &&
-        (numericValue < std::numeric_limits<short>::min() ||
-         numericValue > std::numeric_limits<short>::max())) {
+        (numericValue < std::numeric_limits<std::int16_t>::min() ||
+         numericValue > std::numeric_limits<std::int16_t>::max())) {
       throw std::runtime_error("Type error: value out of range for int16.");
     }
     if (declaredType == "uint32" && numericValue < 0) {
@@ -611,7 +612,7 @@ Value Interpreter::castValue(const std::string &targetType,
   if (isFloatTypeName(targetType)) {
     if (value.type == ValueType::Int) {
       return Value(ValueType::Float,
-                   static_cast<double>(std::get<int>(value.data)));
+                   static_cast<double>(std::get<std::int32_t>(value.data)));
     }
     if (value.type == ValueType::Float) {
       return value;
@@ -620,12 +621,12 @@ Value Interpreter::castValue(const std::string &targetType,
   }
 
   if (isIntegerTypeName(targetType)) {
-    int converted = 0;
+    std::int32_t converted = 0;
 
     if (value.type == ValueType::Int) {
-      converted = std::get<int>(value.data);
+      converted = std::get<std::int32_t>(value.data);
     } else if (value.type == ValueType::Float) {
-      converted = static_cast<int>(std::get<double>(value.data));
+      converted = static_cast<std::int32_t>(std::get<double>(value.data));
     } else {
       throw std::runtime_error("Cannot cast to " + targetType);
     }

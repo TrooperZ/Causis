@@ -2,6 +2,7 @@
 
 #include "causis/TokenType.h"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
@@ -14,7 +15,7 @@ struct Expr {
 };
 
 struct IntExpr : Expr {
-  int value = 0;
+  std::int32_t value = 0;
 };
 
 struct FloatExpr : Expr {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
@@ -26,7 +27,7 @@ struct FunctionValue {
 };
 
 struct Value {
-  using Storage = std::variant<int, double, std::string, bool,
+  using Storage = std::variant<std::int32_t, double, std::string, bool,
                                std::shared_ptr<FunctionValue>, PointerValue,
                                std::monostate>;
 
