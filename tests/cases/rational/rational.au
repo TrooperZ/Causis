@@ -1,16 +1,16 @@
-let half: rational = rational(1, 2);
+let half: Rational = Rational(1, 2);
 print(half);
 print("\n");
 
-let dec1: rational = rational(1.2, 1);
+let dec1: Rational = Rational(1.2, 1);
 print(dec1);
 print("\n");
 
-let dec2: rational = rational(1.2, 1.3);
+let dec2: Rational = Rational(1.2, 1.3);
 print(dec2);
 print("\n");
 
-let dec3: rational = rational(1, 1.2);
+let dec3: Rational = Rational(1, 1.2);
 print(dec3);
 print("\n");
 print("\n");

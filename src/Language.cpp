@@ -42,7 +42,7 @@ constexpr std::array<KeywordEntry, 32> kKeywords = {{
     {"void", TokenType::KwVoid},
     {"derive", TokenType::KwDerive},
     {"when", TokenType::KwWhen},
-    {"rational", TokenType::KwRational},
+    {"Rational", TokenType::KwRational},
 }};
 
 constexpr std::array<KeywordEntry, 14> kTypeKeywords = {{
@@ -59,7 +59,7 @@ constexpr std::array<KeywordEntry, 14> kTypeKeywords = {{
     {"float32", TokenType::KwFloat32},
     {"float64", TokenType::KwFloat64},
     {"void", TokenType::KwVoid},
-    {"rational", TokenType::KwRational}
+    {"Rational", TokenType::KwRational}
 }};
 
 } // namespace
@@ -99,10 +99,6 @@ bool isIntegerTypeName(std::string_view typeName) {
 
 bool isFloatTypeName(std::string_view typeName) {
   return typeName == "float32" || typeName == "float64";
-}
-
-bool isRationalTypeName(std::string_view typeName) {
-  return typeName == "rational";
 }
 
 bool isSupportedTypeName(std::string_view typeName) {

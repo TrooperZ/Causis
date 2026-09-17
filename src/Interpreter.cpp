@@ -104,14 +104,14 @@ Value numericBinaryResult(const Value &left, const Value &right,
 
 int decimalPlaces(double value) {
   value = std::abs(value);
-  for (int places = 0; places <= 15; ++places) {
+  for (int places = 0; places <= 17; ++places) { // define magic number?
     const double factor = std::pow(10.0, places);
     const double scaled = value * factor;
     if (std::abs(scaled - std::round(scaled)) < 1e-9) {
       return places;
     }
   }
-  throw std::runtime_error("Float has too many decimal places for rational.");
+  throw std::runtime_error("Float has too many decimal places for Rational.");
 }
 
 std::int64_t rationalOperand(const Value &value, int decimalScale) {
@@ -121,14 +121,8 @@ std::int64_t rationalOperand(const Value &value, int decimalScale) {
   }
 
   if (value.type == ValueType::Float) {
-    const double scaled = std::get<double>(value.data) *
-                          std::pow(10.0, decimalScale);
-    const double rounded = std::round(scaled);
-    if (rounded < std::numeric_limits<std::int64_t>::min() ||
-        rounded > std::numeric_limits<std::int64_t>::max()) {
-      throw std::runtime_error("Rational operand is out of range.");
-    }
-    return static_cast<std::int64_t>(rounded);
+    return static_cast<std::int64_t>(std::round(std::get<double>(value.data) *
+                          std::pow(10.0, decimalScale)));
   }
 
   throw std::runtime_error("Rational operands must be numeric.");
@@ -544,7 +538,6 @@ Value Interpreter::evalExpr(const Expr &expr) {
       throw std::runtime_error("Rational operands must be numeric.");
     }
 
-    // choose between length of num decimals and den decimals
     int decimalScale = 0;
     if (numeratorValue.type == ValueType::Float) {
       decimalScale = std::max(decimalScale, decimalPlaces(std::get<double>(numeratorValue.data)));
@@ -673,9 +666,9 @@ void Interpreter::checkType(const std::string &declaredType,
     return;
   }
 
-  if (declaredType == "rational") {
+  if (declaredType == "Rational") {
     if (value.type != ValueType::Rational) {
-      throw std::runtime_error("Type error: expected rational.");
+      throw std::runtime_error("Type error: expected Rational.");
     }
     return;
   }
