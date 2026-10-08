@@ -137,6 +137,10 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
     return parseContinueStatement();
   }
 
+  if (match({TokenType::KwFree})) {
+    return parseFreeStatement();
+  }
+
   return parseAssignmentStatement();
 }
 
@@ -264,27 +268,42 @@ std::unique_ptr<Expr> Parser::parseUnary() {
     node->operand = std::move(right);
     return node;
   }
+  if (match({TokenType::Star})) {
+    auto node = std::make_unique<DerefExpr>();
+    node->pointer = parseUnary();
+    return node;
+  }
   return parseCall();
 }
 
 std::unique_ptr<Expr> Parser::parseCall() {
   std::unique_ptr<Expr> expr = parsePrimary();
 
-  while (match({TokenType::LParen})) {
-    const Token &openParen = previous();
-    std::vector<std::unique_ptr<Expr>> args = parseArguments();
-    consume(TokenType::RParen, "Expected ')' after arguments.");
+  while (true) {
+    if (match({TokenType::LParen})) {
+      const Token &openParen = previous();
+      std::vector<std::unique_ptr<Expr>> args = parseArguments();
+      consume(TokenType::RParen, "Expected ')' after arguments.");
 
-    auto *callee = dynamic_cast<IdentifierExpr *>(expr.get());
-    if (callee == nullptr) {
-      throw SourceError(openParen.line, openParen.column,
-                        "Can only call named functions.");
+      auto *callee = dynamic_cast<IdentifierExpr *>(expr.get());
+      if (callee == nullptr) {
+        throw SourceError(openParen.line, openParen.column,
+                          "Can only call named functions.");
+      }
+
+      auto node = std::make_unique<CallExpr>();
+      node->callee = callee->name;
+      node->args = std::move(args);
+      expr = std::move(node);
+    } else if (match({TokenType::LBracket})) {
+      auto node = std::make_unique<DerefExpr>();
+      node->pointer = std::move(expr);
+      node->index = parseExpression();
+      consume(TokenType::RBracket, "Expected ']' after pointer index.");
+      expr = std::move(node);
+    } else {
+      break;
     }
-
-    auto node = std::make_unique<CallExpr>();
-    node->callee = callee->name;
-    node->args = std::move(args);
-    expr = std::move(node);
   }
   return expr;
 }
@@ -406,6 +425,22 @@ std::unique_ptr<Stmt> Parser::parseDeriveDeclaration() {
 std::unique_ptr<Stmt> Parser::parseAssignmentStatement() {
   const Token &name =
       consume(TokenType::Identifier, "Expected assignment target.");
+
+  if (match({TokenType::LBracket})) {
+    auto target = std::make_unique<DerefExpr>();
+    auto pointer = std::make_unique<IdentifierExpr>();
+    pointer->name = name.lexeme;
+    target->pointer = std::move(pointer);
+    target->index = parseExpression();
+    consume(TokenType::RBracket, "Expected ']' after pointer index.");
+    consume(TokenType::Equal, "Expected '=' after pointer index.");
+
+    auto statement = std::make_unique<DerefAssignStmt>();
+    statement->pointer = std::move(target);
+    statement->value = parseExpression();
+    consume(TokenType::Semicolon, "Expected ';' after assignment.");
+    return statement;
+  }
 
   consume(TokenType::Equal, "Expected '=' after assignment target.");
   std::unique_ptr<Expr> expr = parseExpression();
@@ -586,6 +621,15 @@ std::unique_ptr<Stmt> Parser::parseBreakStatement() {
 std::unique_ptr<Stmt> Parser::parseContinueStatement() {
   consume(TokenType::Semicolon, "Expected ';' after continue.");
   return std::make_unique<ContinueStmt>();
+}
+
+std::unique_ptr<Stmt> Parser::parseFreeStatement() {
+  consume(TokenType::LParen, "Expected '(' after free.");
+  auto statement = std::make_unique<FreeStmt>();
+  statement->pointer = parseExpression();
+  consume(TokenType::RParen, "Expected ')' after free argument.");
+  consume(TokenType::Semicolon, "Expected ';' after free.");
+  return statement;
 }
 
 std::unique_ptr<Expr> Parser::parseAllocExpression() {

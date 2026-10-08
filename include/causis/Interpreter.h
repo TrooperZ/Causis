@@ -26,6 +26,9 @@ private:
   Value evalDerivedBinding(Binding &binding);
 
   Value evalExpr(const Expr &expr);
+  HeapAllocation &getAllocation(const PointerValue &pointer);
+  std::size_t getIndex(const DerefExpr &expr, const PointerValue &pointer,
+                       const HeapAllocation &allocation);
 
   void checkType(const std::string &declaredType, const Value &value);
 };

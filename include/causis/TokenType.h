@@ -42,6 +42,7 @@ enum class TokenType {
   KwPtr,
   KwNull,
   KwAlloc,
+  KwFree,
 
   // Boolean literal keywords.
   KwTrue,  // Boolean literal true
@@ -53,6 +54,8 @@ enum class TokenType {
   Dot,    // .
   LParen, // (
   RParen, // )
+  LBracket, // [
+  RBracket, // ]
   LBrace, // {
   RBrace, // }
 

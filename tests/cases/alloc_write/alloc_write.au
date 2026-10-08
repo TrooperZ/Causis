@@ -1,0 +1,6 @@
+let values: ptr<int32> = alloc<int32>(2);
+print(values[0]);
+print(" ");
+values[1] = 42;
+print(values[1]);
+print("\n");

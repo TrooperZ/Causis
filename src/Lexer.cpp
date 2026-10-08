@@ -59,6 +59,14 @@ void Lexer::scanToken() {
     addToken(TokenType::RParen);
     break;
 
+  case '[':
+    addToken(TokenType::LBracket);
+    break;
+
+  case ']':
+    addToken(TokenType::RBracket);
+    break;
+
   case '{':
     addToken(TokenType::LBrace);
     break;

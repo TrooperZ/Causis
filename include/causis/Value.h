@@ -44,7 +44,7 @@ struct ContinueValue {};
 
 struct HeapAllocation {
   std::string elementType;
-  Value value;
+  std::vector<Value> values;
   bool alive = true;
 };
 

@@ -10,7 +10,7 @@ namespace {
 
 using KeywordEntry = std::pair<std::string_view, TokenType>;
 
-constexpr std::array<KeywordEntry, 32> kKeywords = {{
+constexpr std::array<KeywordEntry, 33> kKeywords = {{
     {"let", TokenType::KwLet},
     {"state", TokenType::KwState},
     {"fn", TokenType::KwFn},
@@ -43,6 +43,7 @@ constexpr std::array<KeywordEntry, 32> kKeywords = {{
     {"derive", TokenType::KwDerive},
     {"when", TokenType::KwWhen},
     {"alloc", TokenType::KwAlloc},
+    {"free", TokenType::KwFree},
 
 }};
 

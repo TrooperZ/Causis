@@ -118,11 +118,16 @@ struct AllocExpr : Expr {
 
 struct DerefExpr : Expr {
   std::unique_ptr<Expr> pointer;
+  std::unique_ptr<Expr> index; // nullptr means index zero
 };
 
 struct DerefAssignStmt : Stmt {
   std::unique_ptr<Expr> pointer;
   std::unique_ptr<Expr> value;
+};
+
+struct FreeStmt : Stmt {
+  std::unique_ptr<Expr> pointer;
 };
 
 struct DeriveStmt : Stmt {

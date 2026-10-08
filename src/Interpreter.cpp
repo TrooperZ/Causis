@@ -8,7 +8,9 @@
 #include <cstdint>
 #include <iostream>
 #include <limits>
+#include <list>
 #include <memory>
+#include <numeric>
 #include <stdexcept>
 
 namespace causis {
@@ -99,6 +101,22 @@ Value numericBinaryResult(const Value &left, const Value &right,
   throw std::runtime_error("Unsupported numeric operator.");
 }
 
+Value defaultValueFor(const std::string &typeName) {
+  if (typeName == "string") {
+    return Value(ValueType::String, std::string{});
+  }
+  if (typeName == "bool") {
+    return Value(ValueType::Bool, false);
+  }
+  if (isFloatTypeName(typeName)) {
+    return Value(ValueType::Float, 0.0);
+  }
+  if (isIntegerTypeName(typeName)) {
+    return Value(ValueType::Int, std::int32_t{0});
+  }
+  throw std::runtime_error("Unsupported allocation type: " + typeName);
+}
+
 } // namespace
 
 void Interpreter::execute(const std::vector<std::unique_ptr<Stmt>> &program) {
@@ -182,6 +200,48 @@ void Interpreter::execStmt(const Stmt &stmt) {
     Value value = evalExpr(*(s->value));
     checkType(b.declaredType, value);
     b.value = value;
+    return;
+  }
+
+  if (auto s = dynamic_cast<const DerefAssignStmt *>(&stmt)) {
+    auto *target = dynamic_cast<const DerefExpr *>(s->pointer.get());
+    if (target == nullptr) {
+      throw std::runtime_error("Invalid pointer assignment target.");
+    }
+
+    Value pointerValue = evalExpr(*target->pointer);
+    if (pointerValue.type != ValueType::Pointer) {
+      throw std::runtime_error("Expected pointer assignment target.");
+    }
+
+    const auto &pointer = std::get<PointerValue>(pointerValue.data);
+    HeapAllocation &allocation = getAllocation(pointer);
+    const std::size_t index = getIndex(*target, pointer, allocation);
+    Value value = evalExpr(*s->value);
+    checkType(allocation.elementType, value);
+    allocation.values[index] = value;
+    return;
+  }
+
+  if (auto s = dynamic_cast<const FreeStmt *>(&stmt)) {
+    Value pointerValue = evalExpr(*s->pointer);
+    if (pointerValue.type != ValueType::Pointer) {
+      throw std::runtime_error("Can only free pointers.");
+    }
+
+    const auto &pointer = std::get<PointerValue>(pointerValue.data);
+    if (pointer.allocationId == 0) {
+      throw std::runtime_error("Cannot free null pointer.");
+    }
+    if (pointer.allocationId > _heap.size()) {
+      throw std::runtime_error("Invalid pointer.");
+    }
+
+    HeapAllocation &allocation = _heap[pointer.allocationId - 1];
+    if (!allocation.alive) {
+      throw std::runtime_error("Cannot free an already freed pointer.");
+    }
+    allocation.alive = false;
     return;
   }
 
@@ -376,6 +436,27 @@ Value Interpreter::evalExpr(const Expr &expr) {
     return castValue(e->targetType, input);
   }
 
+  if (auto e = dynamic_cast<const AllocExpr *>(&expr)) {
+    Value countValue = evalExpr(*e->count);
+    if (countValue.type != ValueType::Int) {
+      throw std::runtime_error("Allocation count must be an integer.");
+    }
+
+    const auto count = std::get<std::int32_t>(countValue.data);
+    if (count < 0) {
+      throw std::runtime_error("Allocation count cannot be negative.");
+    }
+
+    Value fill = e->fill ? evalExpr(*e->fill) : defaultValueFor(e->elementType);
+    checkType(e->elementType, fill);
+    _heap.push_back({e->elementType,
+                     std::vector<Value>(static_cast<std::size_t>(count), fill),
+                     true});
+    ++_nextAllocationId;
+    return Value(ValueType::Pointer,
+                 PointerValue{_nextAllocationId, 0, e->elementType});
+  }
+
   if (auto e = dynamic_cast<const FloatExpr *>(&expr)) {
     return Value(ValueType::Float, e->value);
   }
@@ -398,6 +479,17 @@ Value Interpreter::evalExpr(const Expr &expr) {
       return evalDerivedBinding(b);
     }
     return b.value;
+  }
+
+  if (auto e = dynamic_cast<const DerefExpr *>(&expr)) {
+    Value pointerValue = evalExpr(*e->pointer);
+    if (pointerValue.type != ValueType::Pointer) {
+      throw std::runtime_error("Expected pointer value.");
+    }
+
+    const auto &pointer = std::get<PointerValue>(pointerValue.data);
+    HeapAllocation &allocation = getAllocation(pointer);
+    return allocation.values[getIndex(*e, pointer, allocation)];
   }
 
   if (auto e = dynamic_cast<const UnaryExpr *>(&expr)) {
@@ -527,6 +619,40 @@ Value Interpreter::evalDerivedBinding(Binding &binding) {
   }
 }
 
+HeapAllocation &Interpreter::getAllocation(const PointerValue &pointer) {
+  if (pointer.allocationId == 0) {
+    throw std::runtime_error("Cannot dereference null pointer.");
+  }
+  if (pointer.allocationId > _heap.size()) {
+    throw std::runtime_error("Invalid pointer.");
+  }
+
+  HeapAllocation &allocation = _heap[pointer.allocationId - 1];
+  if (!allocation.alive) {
+    throw std::runtime_error("Cannot dereference freed pointer.");
+  }
+  return allocation;
+}
+
+std::size_t Interpreter::getIndex(const DerefExpr &expr,
+                                  const PointerValue &pointer,
+                                  const HeapAllocation &allocation) {
+  std::int32_t index = 0;
+  if (expr.index != nullptr) {
+    Value indexValue = evalExpr(*expr.index);
+    if (indexValue.type != ValueType::Int) {
+      throw std::runtime_error("Pointer index must be an integer.");
+    }
+    index = std::get<std::int32_t>(indexValue.data);
+  }
+
+  if (index < 0 || pointer.offset > allocation.values.size() ||
+      static_cast<std::size_t>(index) >= allocation.values.size() - pointer.offset) {
+    throw std::runtime_error("Pointer index out of bounds.");
+  }
+  return pointer.offset + static_cast<std::size_t>(index);
+}
+
 void Interpreter::checkType(const std::string &declaredType,
                             const Value &value) {
   if (declaredType.empty()) {
@@ -542,6 +668,12 @@ void Interpreter::checkType(const std::string &declaredType,
 
   if (declaredType.rfind("ptr<", 0) == 0) {
     if (value.type != ValueType::Pointer) {
+      throw std::runtime_error("Type error: expected " + declaredType + ".");
+    }
+    const auto &pointer = std::get<PointerValue>(value.data);
+    const std::string elementType =
+        declaredType.substr(4, declaredType.size() - 5);
+    if (pointer.allocationId != 0 && pointer.elementType != elementType) {
       throw std::runtime_error("Type error: expected " + declaredType + ".");
     }
     return;
